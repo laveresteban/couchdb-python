@@ -1,9 +1,14 @@
 name: ci
-on: [pull_request, push]
+on:
+  pull_request:
+  push:
+    branches: [main]
+
 jobs:
-  test:
+  pytest:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python: ["3.9", "3.12", "3.13"]
     services:
@@ -18,7 +23,43 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "${{ matrix.python }}" }
       - run: pip install -e . -r test-requirements.txt
-      - run: |
-          for i in $(seq 30); do curl -sf http://localhost:5984/_up && break; sleep 1; done
+      - name: Wait for CouchDB
+        run: |
+          for i in $(seq 60); do curl -sf http://localhost:5984/_up && break; sleep 1; done
           curl -sf -X PUT http://admin:password@localhost:5984/_users || true
       - run: pytest -v tests
+
+  conformance:
+    runs-on: ubuntu-latest
+    services:
+      couchdb:
+        image: couchdb:3.4
+        env:
+          COUCHDB_USER: admin
+          COUCHDB_PASSWORD: password
+        ports: ["5984:5984"]
+    steps:
+      - uses: actions/checkout@v4
+        with: { path: couchdb-python }
+      - name: Check out shared conformance specs
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/couchdb-sdk-generator
+          path: couchdb-sdk-generator
+          sparse-checkout: conformance
+          token: ${{ secrets.SDK_BOT_TOKEN || github.token }}
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: pip install -e couchdb-python -r couchdb-python/test-requirements.txt
+      - name: Wait for CouchDB
+        run: |
+          for i in $(seq 60); do curl -sf http://localhost:5984/_up && break; sleep 1; done
+          curl -sf -X PUT http://admin:password@localhost:5984/_users || true
+      - run: bash couchdb-python/scripts/conformance.sh
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: conformance-report
+          path: couchdb-python/conformance/reports/html-report

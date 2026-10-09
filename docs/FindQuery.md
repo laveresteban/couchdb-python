@@ -7,7 +7,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **selector** | **Dict[str, object]** |  | 
 **fields** | **List[str]** |  | [optional] 
-**sort** | **List[Dict[str, str]]** |  | [optional] 
+**sort** | **List[Dict[str, str]]** | Field/direction pairs, e.g. &#x60;[{\&quot;age\&quot;: \&quot;desc\&quot;}]&#x60;. Direction is &#x60;asc&#x60; or &#x60;desc&#x60;. | [optional] 
 **limit** | **int** |  | [optional] 
 **skip** | **int** |  | [optional] 
 **use_index** | **List[str]** |  | [optional] 

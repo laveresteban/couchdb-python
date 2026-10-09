@@ -7,3 +7,8 @@ tox.ini
 .travis.yml
 git_push.sh
 .gitlab-ci.yml
+couchdb_sdk/**
+conformance/**
+scripts/**
+.gitattributes
+README.md

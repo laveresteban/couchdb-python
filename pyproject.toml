@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "couchdb_client"
-version = "0.1.0"
+version = "0.2.0"
 description = "Apache CouchDB API"
 authors = ["OpenAPI Generator Community <team@openapitools.org>"]
 license = "Apache-2.0"
