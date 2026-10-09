@@ -133,3 +133,24 @@ def test_cookie_session():
         assert c.session()["userCtx"]["name"] == USER
         c.logout()
         assert c.session()["userCtx"]["name"] is None
+
+
+def test_changes_filters(database):
+    database.bulk_save([{"_id": "a", "t": 1}, {"_id": "b", "t": 2}, {"_id": "c", "t": 1}])
+    assert [r["id"] for r in database.changes(doc_ids=["b"]).results] == ["b"]
+    assert sorted(r["id"] for r in database.changes(selector={"t": 1}).results) == ["a", "c"]
+
+
+def test_follow_resumes_from_checkpoint(database):
+    database.bulk_save([{"_id": "a"}, {"_id": "b"}])
+    feed = database.follow(checkpoint="reader", timeout=1000)
+    seen = []
+    for row in feed:
+        seen.append(row["id"])
+        if len(seen) == 2:
+            feed.stop()
+    assert sorted(seen) == ["a", "b"]
+
+    database.save({"_id": "c"})
+    feed = database.follow(checkpoint="reader", timeout=1000)
+    assert next(iter(feed))["id"] == "c"

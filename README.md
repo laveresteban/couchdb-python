@@ -30,7 +30,9 @@ with CouchDB("http://localhost:5984", "admin", "password") as couch:
     db.view("stats", "by_age")
 
     db.put_attachment("alice", "avatar.png", open("avatar.png", "rb").read(), "image/png")
-    feed = db.changes(since="0")
+    page = db.changes(since="0", doc_ids=["alice"])
+    for change in db.follow(checkpoint="indexer", include_docs=True):
+        ...  # retries transient errors; resumes from _local/indexer after restart
     couch.replicate("people", "people_backup", create_target=True)
 ```
 

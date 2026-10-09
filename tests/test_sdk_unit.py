@@ -68,3 +68,33 @@ def test_update_gives_up_after_retries():
         with pytest.raises(errors.Conflict):
             d.update("a", lambda doc: doc, retries=3)
     assert save.call_count == 3
+
+
+def test_changes_feed_retries_transient_errors_then_raises_fatal():
+    from couchdb_sdk.changes import ChangesFeed
+    from couchdb_sdk.database import ChangesResult
+
+    db = mock.Mock()
+    db.changes.side_effect = [
+        errors.CouchDBError(503, "e", "r"),
+        ChangesResult([{"id": "a", "seq": "1"}], "1"),
+        errors.NotFound(404, "not_found", "Database does not exist."),
+    ]
+    feed = ChangesFeed(db)
+    rows = []
+    with mock.patch("couchdb_sdk.changes.time.sleep") as sleep, pytest.raises(errors.NotFound):
+        for row in feed:
+            rows.append(row)
+    assert rows == [{"id": "a", "seq": "1"}]
+    assert feed.since == "1"
+    sleep.assert_called_once_with(0.5)
+
+
+def test_changes_feed_gives_up_after_max_retries():
+    from couchdb_sdk.changes import ChangesFeed
+
+    db = mock.Mock()
+    db.changes.side_effect = errors.CouchDBError(500, "e", "r")
+    with mock.patch("couchdb_sdk.changes.time.sleep"), pytest.raises(errors.CouchDBError):
+        list(ChangesFeed(db, max_retries=2))
+    assert db.changes.call_count == 3

@@ -22,13 +22,13 @@ from typing import Any, ClassVar, Dict, List, Optional
 from typing import Optional, Set
 from typing_extensions import Self
 
-class DesignDocumentViewsValue(BaseModel):
+class ChangesQuery(BaseModel):
     """
-    DesignDocumentViewsValue
+    ChangesQuery
     """ # noqa: E501
-    map: Optional[StrictStr] = None
-    reduce: Optional[StrictStr] = None
-    __properties: ClassVar[List[str]] = ["map", "reduce"]
+    doc_ids: Optional[List[StrictStr]] = None
+    selector: Optional[Dict[str, Any]] = None
+    __properties: ClassVar[List[str]] = ["doc_ids", "selector"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -48,7 +48,7 @@ class DesignDocumentViewsValue(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Optional[Self]:
-        """Create an instance of DesignDocumentViewsValue from a JSON string"""
+        """Create an instance of ChangesQuery from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -73,7 +73,7 @@ class DesignDocumentViewsValue(BaseModel):
 
     @classmethod
     def from_dict(cls, obj: Optional[Dict[str, Any]]) -> Optional[Self]:
-        """Create an instance of DesignDocumentViewsValue from a dict"""
+        """Create an instance of ChangesQuery from a dict"""
         if obj is None:
             return None
 
@@ -81,8 +81,8 @@ class DesignDocumentViewsValue(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "map": obj.get("map"),
-            "reduce": obj.get("reduce")
+            "doc_ids": obj.get("doc_ids"),
+            "selector": obj.get("selector")
         })
         return _obj
 
