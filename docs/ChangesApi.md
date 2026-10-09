@@ -4,14 +4,14 @@ All URIs are relative to *http://localhost:5984*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**get_changes**](ChangesApi.md#get_changes) | **GET** /{db}/_changes | Database changes feed (normal or longpoll)
+[**get_changes**](ChangesApi.md#get_changes) | **GET** /{db}/_changes | Database changes feed (normal, longpoll or continuous)
 [**post_changes**](ChangesApi.md#post_changes) | **POST** /{db}/_changes | Changes feed filtered by a body (&#x60;_doc_ids&#x60; or &#x60;_selector&#x60;)
 
 
 # **get_changes**
 > ChangesResult get_changes(db, feed=feed, since=since, include_docs=include_docs, conflicts=conflicts, attachments=attachments, style=style, filter=filter, view=view, doc_ids=doc_ids, limit=limit, timeout=timeout, heartbeat=heartbeat, seq_interval=seq_interval, descending=descending)
 
-Database changes feed (normal or longpoll)
+Database changes feed (normal, longpoll or continuous)
 
 ### Example
 
@@ -52,7 +52,7 @@ with couchdb_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = couchdb_client.ChangesApi(api_client)
     db = 'db_example' # str | Database name
-    feed = normal # str | `continuous` and `eventsource` stream; SDKs follow the feed with `longpoll`. (optional) (default to normal)
+    feed = normal # str | `normal`/`longpoll` return one JSON object; `continuous` streams newline-delimited change objects. `eventsource` is not supported. (optional) (default to normal)
     since = '0' # str | Start after this sequence; `now` skips existing changes. (optional) (default to '0')
     include_docs = False # bool |  (optional) (default to False)
     conflicts = False # bool | Include `_conflicts` in docs; requires `include_docs`. (optional) (default to False)
@@ -68,7 +68,7 @@ with couchdb_client.ApiClient(configuration) as api_client:
     descending = False # bool |  (optional) (default to False)
 
     try:
-        # Database changes feed (normal or longpoll)
+        # Database changes feed (normal, longpoll or continuous)
         api_response = api_instance.get_changes(db, feed=feed, since=since, include_docs=include_docs, conflicts=conflicts, attachments=attachments, style=style, filter=filter, view=view, doc_ids=doc_ids, limit=limit, timeout=timeout, heartbeat=heartbeat, seq_interval=seq_interval, descending=descending)
         print("The response of ChangesApi->get_changes:\n")
         pprint(api_response)
@@ -84,7 +84,7 @@ with couchdb_client.ApiClient(configuration) as api_client:
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **db** | **str**| Database name | 
- **feed** | **str**| &#x60;continuous&#x60; and &#x60;eventsource&#x60; stream; SDKs follow the feed with &#x60;longpoll&#x60;. | [optional] [default to normal]
+ **feed** | **str**| &#x60;normal&#x60;/&#x60;longpoll&#x60; return one JSON object; &#x60;continuous&#x60; streams newline-delimited change objects. &#x60;eventsource&#x60; is not supported. | [optional] [default to normal]
  **since** | **str**| Start after this sequence; &#x60;now&#x60; skips existing changes. | [optional] [default to &#39;0&#39;]
  **include_docs** | **bool**|  | [optional] [default to False]
  **conflicts** | **bool**| Include &#x60;_conflicts&#x60; in docs; requires &#x60;include_docs&#x60;. | [optional] [default to False]
@@ -168,7 +168,7 @@ with couchdb_client.ApiClient(configuration) as api_client:
     api_instance = couchdb_client.ChangesApi(api_client)
     db = 'db_example' # str | Database name
     changes_query = couchdb_client.ChangesQuery() # ChangesQuery | 
-    feed = normal # str | `continuous` and `eventsource` stream; SDKs follow the feed with `longpoll`. (optional) (default to normal)
+    feed = normal # str | `normal`/`longpoll` return one JSON object; `continuous` streams newline-delimited change objects. `eventsource` is not supported. (optional) (default to normal)
     since = '0' # str | Start after this sequence; `now` skips existing changes. (optional) (default to '0')
     include_docs = False # bool |  (optional) (default to False)
     conflicts = False # bool | Include `_conflicts` in docs; requires `include_docs`. (optional) (default to False)
@@ -201,7 +201,7 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **db** | **str**| Database name | 
  **changes_query** | [**ChangesQuery**](ChangesQuery.md)|  | 
- **feed** | **str**| &#x60;continuous&#x60; and &#x60;eventsource&#x60; stream; SDKs follow the feed with &#x60;longpoll&#x60;. | [optional] [default to normal]
+ **feed** | **str**| &#x60;normal&#x60;/&#x60;longpoll&#x60; return one JSON object; &#x60;continuous&#x60; streams newline-delimited change objects. &#x60;eventsource&#x60; is not supported. | [optional] [default to normal]
  **since** | **str**| Start after this sequence; &#x60;now&#x60; skips existing changes. | [optional] [default to &#39;0&#39;]
  **include_docs** | **bool**|  | [optional] [default to False]
  **conflicts** | **bool**| Include &#x60;_conflicts&#x60; in docs; requires &#x60;include_docs&#x60;. | [optional] [default to False]

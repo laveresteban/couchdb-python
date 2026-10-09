@@ -116,3 +116,96 @@ def test_api_exception_headers_are_kept():
     exc = api_error(503)
     exc.headers = {"Retry-After": "3"}
     assert errors.from_api_exception(exc).headers["Retry-After"] == "3"
+
+
+# -- continuous changes feed ------------------------------------------------
+
+class FakeStream:
+    """A urllib3-like streaming response. Items that are exceptions are raised
+    mid-stream to simulate a dropped connection."""
+
+    def __init__(self, chunks, status=200, body=b""):
+        self.status = status
+        self._chunks = list(chunks)
+        self._body = body
+        self.headers = {}
+
+    def stream(self, amt=None, decode_content=True):
+        for chunk in self._chunks:
+            if isinstance(chunk, Exception):
+                raise chunk
+            yield chunk
+
+    def read(self):
+        return self._body
+
+    def release_conn(self):
+        pass
+
+
+def continuous_feed(opens, **kwargs):
+    """A ChangesFeed whose _open() returns each FakeStream in turn."""
+    from couchdb_sdk.changes import ChangesFeed
+
+    db = mock.Mock()
+    db.name = "db"
+    feed = ChangesFeed(db, feed="continuous", **kwargs)
+    feed._open = mock.Mock(side_effect=list(opens))
+    return feed
+
+
+def test_continuous_yields_changes_and_skips_heartbeats():
+    # A JSON change, a heartbeat (blank line), another change, then last_seq.
+    stream = FakeStream([
+        b'{"seq":"1","id":"a","changes":[]}\n',
+        b"\n",  # heartbeat
+        b'{"seq":"2","id":"b","changes":[]}\n{"last_seq":"2","pending":0}\n',
+    ])
+    feed = continuous_feed([stream])
+    feed._stopped = False
+    rows = []
+    for row in feed:
+        rows.append(row)
+        if len(rows) == 2:
+            feed.stop()
+    assert [r["id"] for r in rows] == ["a", "b"]
+    assert feed.since == "2"
+
+
+def test_continuous_reconnects_from_last_seq_on_transient_drop():
+    import urllib3
+
+    dropped = FakeStream([
+        b'{"seq":"1","id":"a","changes":[]}\n',
+        urllib3.exceptions.ProtocolError("connection broken"),
+    ])
+    resumed = FakeStream([b'{"seq":"2","id":"b","changes":[]}\n'])
+    feed = continuous_feed([dropped, resumed])
+    rows = []
+    with mock.patch("couchdb_sdk.changes.time.sleep") as sleep:
+        for row in feed:
+            rows.append(row)
+            if len(rows) == 2:
+                feed.stop()
+    assert [r["id"] for r in rows] == ["a", "b"]
+    # Reconnected from the last seen seq, not from the start.
+    assert feed._open.call_count == 2
+    assert feed.since == "2"
+    sleep.assert_called_once()
+
+
+def test_continuous_raises_on_fatal_status():
+    from couchdb_sdk import errors
+
+    feed = continuous_feed([FakeStream([], status=404, body=b'{"error":"not_found"}')])
+    with pytest.raises(errors.CouchDBError) as exc:
+        list(feed)
+    assert exc.value.status == 404
+
+
+def test_continuous_rejects_filters():
+    from couchdb_sdk.changes import ChangesFeed
+
+    db = mock.Mock()
+    with pytest.raises(ValueError):
+        ChangesFeed(db, feed="continuous", selector={"t": 1})

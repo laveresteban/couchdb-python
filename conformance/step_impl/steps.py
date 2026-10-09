@@ -369,6 +369,20 @@ def follow_next(name, docid):
     assert row["id"] == docid, row
 
 
+@step("Follow the continuous changes feed with checkpoint <name> until document <docid>")
+def follow_continuous_until(name, docid):
+    feed = db().follow(feed="continuous", checkpoint=name, heartbeat=1000, batch_size=1)
+    for row in feed:
+        if row["id"] == docid:
+            feed.stop()
+
+
+@step("Following the continuous changes feed with checkpoint <name> next yields document <docid>")
+def follow_continuous_next(name, docid):
+    row = next(iter(db().follow(feed="continuous", checkpoint=name, heartbeat=1000)))
+    assert row["id"] == docid, row
+
+
 # -- security --------------------------------------------------------------
 @step("Set the database members to user <user>")
 def set_members(user):
