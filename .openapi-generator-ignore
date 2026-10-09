@@ -12,3 +12,5 @@ conformance/**
 scripts/**
 .gitattributes
 README.md
+LICENSE
+NOTICE

@@ -75,3 +75,7 @@ Override the server with `COUCHDB_URL`, `COUCHDB_USER` and `COUCHDB_PASSWORD`.
 
 The package version is the spec's `info.version`, stamped at generation time.
 `.generated-from` records the exact spec and generator commits.
+
+## License
+
+Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).

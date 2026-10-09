@@ -41,20 +41,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { path: couchdb-python }
-      - name: Require access to the generator repo
-        env: { TOKEN: "${{ secrets.SDK_BOT_TOKEN }}" }
-        run: |
-          if [ -z "$TOKEN" ]; then
-            echo "::error::Conformance specs live in the private couchdb-sdk-generator repo. Set the SDK_BOT_TOKEN secret (see couchdb-sdk-generator/SETUP.md)."
-            exit 1
-          fi
       - name: Check out shared conformance specs
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository_owner }}/couchdb-sdk-generator
           path: couchdb-sdk-generator
           sparse-checkout: conformance
-          token: ${{ secrets.SDK_BOT_TOKEN }}
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - uses: actions/setup-node@v4
