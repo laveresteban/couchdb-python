@@ -1,0 +1,9 @@
+# Hand-written files the generator must never overwrite.
+tests/**
+.github/**
+CHANGELOG.md
+test-requirements.txt
+tox.ini
+.travis.yml
+git_push.sh
+.gitlab-ci.yml
