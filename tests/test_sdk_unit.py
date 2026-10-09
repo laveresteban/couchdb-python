@@ -87,7 +87,7 @@ def test_changes_feed_retries_transient_errors_then_raises_fatal():
             rows.append(row)
     assert rows == [{"id": "a", "seq": "1"}]
     assert feed.since == "1"
-    sleep.assert_called_once_with(0.5)
+    assert 0.5 <= sleep.call_args[0][0] <= 1.0
 
 
 def test_changes_feed_gives_up_after_max_retries():
@@ -98,3 +98,21 @@ def test_changes_feed_gives_up_after_max_retries():
     with mock.patch("couchdb_sdk.changes.time.sleep"), pytest.raises(errors.CouchDBError):
         list(ChangesFeed(db, max_retries=2))
     assert db.changes.call_count == 3
+
+
+def test_changes_feed_honors_retry_after():
+    from couchdb_sdk.changes import ChangesFeed
+
+    busy = errors.CouchDBError(429, "e", "r")
+    busy.headers = {"Retry-After": "7"}
+    db = mock.Mock()
+    db.changes.side_effect = [busy, errors.NotFound(404, "x", "y")]
+    with mock.patch("couchdb_sdk.changes.time.sleep") as sleep, pytest.raises(errors.NotFound):
+        list(ChangesFeed(db))
+    sleep.assert_called_once_with(7.0)
+
+
+def test_api_exception_headers_are_kept():
+    exc = api_error(503)
+    exc.headers = {"Retry-After": "3"}
+    assert errors.from_api_exception(exc).headers["Retry-After"] == "3"

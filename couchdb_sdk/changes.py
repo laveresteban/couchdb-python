@@ -1,6 +1,7 @@
 """Long-running changes feed reader with retries and optional checkpoints."""
 from __future__ import annotations
 
+import random
 import time
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterator, Optional, TypeVar
 
@@ -21,10 +22,19 @@ def is_transient(exc: Exception) -> bool:
     return isinstance(exc, CouchDBError) and (exc.status in (0, 429) or exc.status >= 500)
 
 
+def retry_after(exc: Exception) -> Optional[float]:
+    """Seconds from a `Retry-After` header, if the server sent one."""
+    try:
+        return float(exc.headers["Retry-After"])  # type: ignore[attr-defined]
+    except (AttributeError, KeyError, TypeError, ValueError):
+        return None
+
+
 class ChangesFeed:
     """Follow `db`'s changes forever using longpoll.
 
-    Transient failures are retried with capped exponential backoff. With
+    Transient failures are retried with jittered exponential backoff, or after
+    the server's `Retry-After`, capped at `max_backoff`. With
     `checkpoint`, the position is stored in `_local/<checkpoint>` after each
     batch is consumed, so a restarted reader resumes where it left off
     (at-least-once delivery). `stop()` ends iteration after the current poll.
@@ -58,7 +68,10 @@ class ChangesFeed:
             except Exception as exc:
                 if not is_transient(exc) or attempt == self.max_retries:
                     raise
-                time.sleep(min(self.max_backoff, 0.5 * 2 ** attempt))
+                delay = retry_after(exc)
+                if delay is None:
+                    delay = random.uniform(0.5, 1.0) * 2 ** attempt  # jitter spreads out retries
+                time.sleep(min(self.max_backoff, delay))
                 attempt += 1
 
     def _load_checkpoint(self) -> None:
