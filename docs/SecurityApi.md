@@ -17,6 +17,7 @@ Get the database security object
 
 * Basic Authentication (basicAuth):
 * Api Key Authentication (cookieAuth):
+* Bearer (JWT) Authentication (bearerAuth):
 
 ```python
 import couchdb_client
@@ -46,6 +47,11 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 
 # Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
 # configuration.api_key_prefix['cookieAuth'] = 'Bearer'
+
+# Configure Bearer authorization (JWT): bearerAuth
+configuration = couchdb_client.Configuration(
+    access_token = os.environ["BEARER_TOKEN"]
+)
 
 # Enter a context with an instance of the API client
 with couchdb_client.ApiClient(configuration) as api_client:
@@ -77,7 +83,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth)
+[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth), [bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -103,6 +109,7 @@ Replace the database security object
 
 * Basic Authentication (basicAuth):
 * Api Key Authentication (cookieAuth):
+* Bearer (JWT) Authentication (bearerAuth):
 
 ```python
 import couchdb_client
@@ -133,6 +140,11 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 
 # Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
 # configuration.api_key_prefix['cookieAuth'] = 'Bearer'
+
+# Configure Bearer authorization (JWT): bearerAuth
+configuration = couchdb_client.Configuration(
+    access_token = os.environ["BEARER_TOKEN"]
+)
 
 # Enter a context with an instance of the API client
 with couchdb_client.ApiClient(configuration) as api_client:
@@ -166,7 +178,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth)
+[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth), [bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 

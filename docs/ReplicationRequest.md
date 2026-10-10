@@ -5,8 +5,8 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**source** | [**ReplicationRequestSource**](ReplicationRequestSource.md) |  | 
-**target** | [**ReplicationRequestTarget**](ReplicationRequestTarget.md) |  | 
+**source** | **object** | A database URL (string), or an object with &#x60;url&#x60; and optional &#x60;auth&#x60; (e.g. &#x60;{\&quot;basic\&quot;: {\&quot;username\&quot;: ..., \&quot;password\&quot;: ...}}&#x60;). Left untyped on purpose: &#x60;oneOf: [string, object]&#x60; breaks typescript-fetch.  | 
+**target** | **object** | A database URL (string), or an object with &#x60;url&#x60; and optional &#x60;auth&#x60; (e.g. &#x60;{\&quot;basic\&quot;: {\&quot;username\&quot;: ..., \&quot;password\&quot;: ...}}&#x60;). Left untyped on purpose: &#x60;oneOf: [string, object]&#x60; breaks typescript-fetch.  | 
 **create_target** | **bool** |  | [optional] 
 **continuous** | **bool** |  | [optional] 
 **cancel** | **bool** |  | [optional] 

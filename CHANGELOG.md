@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.0 (unreleased)
+- Regenerated from couchdb-openapi 0.7.0. Absent untyped fields (view
+  `start_key`, ...) are no longer sent as `null` (generator template fix).
+- `Database.head()`, `get_if_changed()` (ETag / 304), `explain()`,
+  `design_docs()`, `local_docs()`, `purge()`, `compact()`, `view_cleanup()`.
+- `CouchDB.dbs_info()`, `active_tasks()`, `scheduler_jobs()`,
+  `scheduler_docs()`, `db_updates()`.
+- `replicate()` passes full URLs through as plain strings.
+- Steps for the 13 conformance scenarios added with spec 0.7.0 (46/46).
+
 ## 0.6.0 (unreleased)
 - Regenerated from couchdb-openapi 0.6.0 (`_revs_diff`, `_bulk_get`, `revs`/`latest`
   on document GET, more view query fields, typed 401/403 responses).

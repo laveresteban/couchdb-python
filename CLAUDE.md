@@ -20,24 +20,25 @@ bash scripts/conformance.sh [--tags sync]
 
 ## Rules
 
-- Build request models with constructors, not `from_dict`, when they have
-  untyped fields (see the comment in `database.py`).
+- `from_dict` is safe for models with untyped fields since 0.7.0 (the
+  generator's Python template only sets keys that are present); older
+  wrapper code builds them with constructors, which is also fine.
 - Wrap every generated call in `with translate():` so users get typed errors.
 
 ## Fixes still open
 
-Done in 0.6.0: regenerated client, `sync.spec` steps, continuous feed
-encoding/filters/null seqs, session renewal, `bulk_save` revs, narrower
-`is_transient`, `replication_url`. `scripts/conformance.sh` now fails on
-skipped scenarios (Gauge alone reports them as a pass).
+Done in 0.6.0/0.7.0: regenerated client, `sync.spec` steps and the 0.7.0
+scenarios (46/46), continuous feed encoding/filters/null seqs, session
+renewal, `bulk_save` revs, narrower `is_transient`, `replication_url`,
+`head`/ETag, maintenance and listing helpers. `scripts/conformance.sh` fails
+on skipped scenarios (Gauge alone reports them as a pass).
 
 - The continuous reader doesn't log in again on a 401 mid-stream; it raises.
 
 ## Features to add
 
 - Async client (`httpx` or the generator's `asyncio` library option).
-- `has()`/`__contains__` via `HEAD` once the spec has it.
+- `__contains__` via `head()` instead of a full GET.
 - Attachment streaming (no full `bytes` in memory for large files).
-- `Database.purge`, `explain`, `design_docs`, `local_docs` as the spec grows.
 - `iter_all_docs()` / `iter_find()` helpers that page with bookmark/startkey.
 - Type hints for documents (`TypedDict` or generic `Database[T]`).
