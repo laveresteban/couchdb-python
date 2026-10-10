@@ -1,13 +1,14 @@
 """Pythonic database handle over the generated couchdb_client APIs."""
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
 
 import couchdb_client as gen
 
 from .changes import ChangesFeed
-from .errors import Conflict, NotFound, translate
+from .errors import Conflict, CouchDBError, NotFound, translate
 
 Doc = Dict[str, Any]
 
@@ -32,6 +33,12 @@ def _plain(model: Any) -> Any:
 
 def _rows(result: Any) -> List[Dict[str, Any]]:
     return [_plain(r) for r in (result.rows or [])]
+
+
+def _json_keys(kwargs: Dict[str, Any]) -> Dict[str, Any]:
+    """GET listing endpoints take keys as JSON text; accept plain values."""
+    return {k: json.dumps(v) if k in ("key", "keys", "start_key", "end_key") else v
+            for k, v in kwargs.items()}
 
 
 def _find_result(res: Any) -> FindResult:
@@ -80,6 +87,7 @@ class Database:
         self._security = gen.SecurityApi(c)
         self._partitions = gen.PartitionsApi(c)
         self._replication = gen.ReplicationApi(c)
+        self._maintenance = gen.MaintenanceApi(c)
 
     # -- database ---------------------------------------------------------
     def info(self) -> Dict[str, Any]:
@@ -97,6 +105,26 @@ class Database:
     def get(self, docid: str, **kwargs: Any) -> Doc:
         with translate():
             return _plain(self._docs.get_document(self.name, docid, **kwargs))
+
+    def head(self, docid: str) -> Optional[str]:
+        """The doc's current revision without downloading it, or None if it doesn't exist."""
+        try:
+            with translate():
+                res = self._docs.head_document_with_http_info(self.name, docid)
+        except NotFound:
+            return None
+        return (res.headers or {}).get("ETag", "").strip('"') or None
+
+    def get_if_changed(self, docid: str, etag: str) -> Optional[Doc]:
+        """The doc, or None if it still matches `etag` (its rev, quoted or not)."""
+        tag = etag if etag.startswith('"') else f'"{etag}"'
+        try:
+            with translate():
+                return _plain(self._docs.get_document(self.name, docid, if_none_match=tag))
+        except CouchDBError as err:
+            if err.status == 304:  # the generated client raises on any non-2xx
+                return None
+            raise
 
     def save(self, doc: Doc) -> Doc:
         """Create or update `doc` in place, setting its `_id` and `_rev`."""
@@ -171,6 +199,21 @@ class Database:
     def find(self, selector: Doc, **kwargs: Any) -> FindResult:
         with translate():
             return _find_result(self._query.post_find(self.name, _find_query(selector, kwargs)))
+
+    def explain(self, selector: Doc, **kwargs: Any) -> Dict[str, Any]:
+        """The plan for a Mango query: which index it uses, and the options applied."""
+        with translate():
+            return _plain(self._query.post_explain(self.name, _find_query(selector, kwargs)))
+
+    def design_docs(self, **kwargs: Any) -> List[Dict[str, Any]]:
+        """Rows for the design documents. Key options take plain values; they're JSON-encoded here."""
+        with translate():
+            return _rows(self._query.get_design_docs(self.name, **_json_keys(kwargs)))
+
+    def local_docs(self, **kwargs: Any) -> List[Dict[str, Any]]:
+        """Rows for the `_local` documents (checkpoints)."""
+        with translate():
+            return _rows(self._query.get_local_docs(self.name, **_json_keys(kwargs)))
 
     def create_index(self, fields: List[str], name: Optional[str] = None, **kwargs: Any) -> Dict[str, Any]:
         body = {"index": {"fields": fields}, **kwargs}
@@ -265,6 +308,22 @@ class Database:
                 self.name, gen.BulkGetRequest.from_dict({"docs": docs}),
                 revs=revs or None, latest=latest or None, attachments=attachments or None)
         return [_plain(r) for r in res.results]
+
+    # -- maintenance -------------------------------------------------------
+    def compact(self) -> None:
+        """Start compacting the database; it runs in the background."""
+        with translate():
+            self._maintenance.post_compact(self.name, _content_type="application/json")
+
+    def view_cleanup(self) -> None:
+        """Remove index files no design document uses anymore."""
+        with translate():
+            self._maintenance.post_view_cleanup(self.name, _content_type="application/json")
+
+    def purge(self, revs: Dict[str, List[str]]) -> Dict[str, List[str]]:
+        """Permanently remove revisions (no tombstone, not replicated). Returns what was purged."""
+        with translate():
+            return self._maintenance.post_purge(self.name, revs).purged
 
     # -- local documents --------------------------------------------------
     def get_local(self, docid: str) -> Doc:

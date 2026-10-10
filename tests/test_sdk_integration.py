@@ -253,3 +253,54 @@ def test_follow_continuous_with_selector(database):
     row = next(iter(feed))
     feed.stop()
     assert row["id"] == "b"
+
+
+def test_head_and_conditional_get(database):
+    rev = database.save({"_id": "a", "v": 1})["_rev"]
+    assert database.head("a") == rev
+    assert database.head("missing") is None
+    assert database.get_if_changed("a", rev) is None
+    database.update("a", lambda d: {**d, "v": 2})
+    assert database.get_if_changed("a", rev)["v"] == 2
+
+
+def test_listings_and_explain(database):
+    database.save_design("stats", {"by_v": {"map": "function(d){ emit(d.v, 1); }"}})
+    database.put_local("cp", {"seq": "1"})
+    assert [r["id"] for r in database.design_docs()] == ["_design/stats"]
+    assert [r["id"] for r in database.local_docs()] == ["_local/cp"]
+    database.bulk_save([{"v": i} for i in range(3)])
+    database.create_index(["v"], name="v-idx")
+    assert database.explain({"v": {"$gt": 0}})["index"]["name"] == "v-idx"
+    # Untyped view keys aren't sent as null when left out (template fix).
+    assert len(database.view("stats", "by_v", start_key=1)) == 2
+
+
+def test_purge_compact_and_cleanup(couch, database):
+    rev = database.save({"_id": "a"})["_rev"]
+    assert database.purge({"a": [rev]}) == {"a": [rev]}
+    assert "a" not in database
+    database.compact()
+    database.view_cleanup()
+    assert isinstance(couch.active_tasks(), list)
+
+
+def test_server_listings(couch, database):
+    res = couch.dbs_info([database.name, "no_such_db"])
+    assert res[0]["info"]["db_name"] == database.name
+    assert res[1]["error"] == "not_found"
+    assert isinstance(couch.scheduler_jobs()["jobs"], list)
+    assert isinstance(couch.scheduler_docs()["docs"], list)
+    assert "last_seq" in couch.db_updates(descending=True, limit=1)
+
+
+def test_replicate_with_plain_urls(couch, database):
+    database.bulk_save([{"i": i} for i in range(3)])
+    target = unique_name()
+    scheme, rest = URL.split("://", 1)
+    base = f"{scheme}://{USER}:{PASSWORD}@{rest.rstrip('/')}"
+    try:
+        couch.replicate(f"{base}/{database.name}", f"{base}/{target}", create_target=True)
+        assert couch[target].info()["doc_count"] == 3
+    finally:
+        couch.delete_database(target)

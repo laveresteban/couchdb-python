@@ -44,6 +44,17 @@ with CouchDB("http://localhost:5984", "admin", "password") as couch:
 `login()` keeps the cookie session alive: it takes the renewed cookie CouchDB
 sends and logs in again once if the session expires.
 
+Housekeeping and cheap checks:
+
+```python
+db.head("alice")                      # current rev without the body, or None
+db.get_if_changed("alice", rev)       # None if unchanged (ETag / 304)
+db.explain({"age": {"$gt": 30}})      # which index a query uses
+db.purge({"alice": [rev]})            # remove revisions for good
+db.compact(); db.view_cleanup()
+couch.dbs_info(["people", "other"]); couch.active_tasks(); couch.db_updates(feed="longpoll")
+```
+
 Errors are typed: `NotFound` (also a `KeyError`), `Conflict`, `Unauthorized`,
 `Forbidden`, `PreconditionFailed`, all subclasses of `CouchDBError` with
 `.status`, `.error` and `.reason`.

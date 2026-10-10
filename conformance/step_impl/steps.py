@@ -508,3 +508,114 @@ def revision_history(docid, count):
 def changes_by_selector(field, value, ids):
     got = [r["id"] for r in db().changes(selector={field: value}).results]
     assert sorted(got) == sorted(ids.split(",")), got
+
+
+# -- attachments: content type ---------------------------------------------
+@step("Attach <data> as <name> with content type <ctype> to document <docid>")
+def attach_typed(data, name, ctype, docid):
+    db().put_attachment(docid, name, data.encode(), ctype)
+
+
+@step("Attachment <name> of document <docid> has content type <ctype>")
+def attachment_type(name, docid, ctype):
+    assert db()[docid]["_attachments"][name]["content_type"] == ctype
+
+
+# -- views: key range ------------------------------------------------------
+@step("Querying view <path> from key <start> to key <end> returns <count> rows")
+def view_range(path, start, end, count):
+    rows = db().view(*split_view(path), reduce=False, start_key=int(start), end_key=int(end))
+    assert len(rows) == int(count), rows
+
+
+# -- listings --------------------------------------------------------------
+@step("Design documents list <count> rows")
+def design_docs(count):
+    assert len(db().design_docs()) == int(count)
+
+
+@step("Local documents list <count> rows")
+def local_docs(count):
+    assert len(db().local_docs()) == int(count)
+
+
+# -- replication with plain URLs -------------------------------------------
+@step("Replicate the database to a new database using plain URLs")
+def replicate_urls():
+    s["replica"] = new_name()
+    scheme, rest = URL.split("://", 1)
+    base = f"{scheme}://{USER}:{PASSWORD}@{rest.rstrip('/')}"
+    couch().replicate(f"{base}/{db().name}", f"{base}/{s['replica']}", create_target=True)
+
+
+# -- conditional reads -----------------------------------------------------
+@step("Checking document <docid> reports the remembered revision")
+def head_rev(docid):
+    assert db().head(docid) == s["rev"]
+
+
+@step("Checking document <docid> reports it is missing")
+def head_missing(docid):
+    assert db().head(docid) is None
+
+
+@step("Reading document <docid> again with its ETag reports not modified")
+def not_modified(docid):
+    assert db().get_if_changed(docid, db().head(docid)) is None
+
+
+# -- maintenance -----------------------------------------------------------
+@step("Compact the database")
+def compact():
+    db().compact()
+
+
+@step("Active tasks can be listed")
+def active_tasks():
+    assert isinstance(couch().active_tasks(), list)
+
+
+@step("Clean up view indexes")
+def view_cleanup():
+    db().view_cleanup()
+
+
+@step("Purge document <docid>")
+def purge(docid):
+    rev = db()[docid]["_rev"]
+    assert db().purge({docid: [rev]}) == {docid: [rev]}
+
+
+@step("Explaining a query for age greater than <age> uses index <name>")
+def explain(age, name):
+    plan = db().explain({"age": {"$gt": int(age)}})
+    assert plan["index"]["name"] == name, plan["index"]
+
+
+@step("Database info for this database and <other> finds <found> and misses <missing>")
+def dbs_info(other, found, missing):
+    res = couch().dbs_info([db().name, other])
+    assert sum("info" in r for r in res) == int(found), res
+    assert sum(r.get("error") == "not_found" for r in res) == int(missing), res
+
+
+# -- server: scheduler and db updates --------------------------------------
+@step("The replication scheduler lists jobs and documents")
+def scheduler():
+    assert isinstance(couch().scheduler_jobs()["jobs"], list)
+    assert isinstance(couch().scheduler_docs()["docs"], list)
+
+
+@step("Creating a database shows up in the database updates feed")
+def db_updates():
+    since = couch().db_updates(descending=True, limit=1)["last_seq"]
+    name = new_name()
+    couch().create_database(name)
+    seen = []
+    for _ in range(10):  # the feed is written asynchronously; give it a few polls
+        page = couch().db_updates(feed="longpoll", since=since, timeout=5000)
+        seen += [(r["db_name"], r["type"]) for r in page["results"]]
+        if (name, "created") in seen:
+            return
+        since = page["last_seq"]
+    raise AssertionError(f"{name} not in {seen}")

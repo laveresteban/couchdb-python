@@ -7,6 +7,7 @@ Method | HTTP request | Description
 [**delete_database**](DatabasesApi.md#delete_database) | **DELETE** /{db} | Delete a database
 [**get_database_information**](DatabasesApi.md#get_database_information) | **GET** /{db} | Get database information
 [**head_database**](DatabasesApi.md#head_database) | **HEAD** /{db} | Check database existence
+[**post_dbs_info**](DatabasesApi.md#post_dbs_info) | **POST** /_dbs_info | Information about several databases at once
 [**put_database**](DatabasesApi.md#put_database) | **PUT** /{db} | Create a database
 
 
@@ -19,6 +20,7 @@ Delete a database
 
 * Basic Authentication (basicAuth):
 * Api Key Authentication (cookieAuth):
+* Bearer (JWT) Authentication (bearerAuth):
 
 ```python
 import couchdb_client
@@ -48,6 +50,11 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 
 # Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
 # configuration.api_key_prefix['cookieAuth'] = 'Bearer'
+
+# Configure Bearer authorization (JWT): bearerAuth
+configuration = couchdb_client.Configuration(
+    access_token = os.environ["BEARER_TOKEN"]
+)
 
 # Enter a context with an instance of the API client
 with couchdb_client.ApiClient(configuration) as api_client:
@@ -79,7 +86,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth)
+[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth), [bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -107,6 +114,7 @@ Get database information
 
 * Basic Authentication (basicAuth):
 * Api Key Authentication (cookieAuth):
+* Bearer (JWT) Authentication (bearerAuth):
 
 ```python
 import couchdb_client
@@ -136,6 +144,11 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 
 # Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
 # configuration.api_key_prefix['cookieAuth'] = 'Bearer'
+
+# Configure Bearer authorization (JWT): bearerAuth
+configuration = couchdb_client.Configuration(
+    access_token = os.environ["BEARER_TOKEN"]
+)
 
 # Enter a context with an instance of the API client
 with couchdb_client.ApiClient(configuration) as api_client:
@@ -167,7 +180,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth)
+[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth), [bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -192,6 +205,7 @@ Check database existence
 
 * Basic Authentication (basicAuth):
 * Api Key Authentication (cookieAuth):
+* Bearer (JWT) Authentication (bearerAuth):
 
 ```python
 import couchdb_client
@@ -220,6 +234,11 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 
 # Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
 # configuration.api_key_prefix['cookieAuth'] = 'Bearer'
+
+# Configure Bearer authorization (JWT): bearerAuth
+configuration = couchdb_client.Configuration(
+    access_token = os.environ["BEARER_TOKEN"]
+)
 
 # Enter a context with an instance of the API client
 with couchdb_client.ApiClient(configuration) as api_client:
@@ -249,7 +268,7 @@ void (empty response body)
 
 ### Authorization
 
-[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth)
+[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth), [bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -265,6 +284,99 @@ void (empty response body)
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **post_dbs_info**
+> List[DbsInfoEntry] post_dbs_info(post_dbs_info_request)
+
+Information about several databases at once
+
+### Example
+
+* Basic Authentication (basicAuth):
+* Api Key Authentication (cookieAuth):
+* Bearer (JWT) Authentication (bearerAuth):
+
+```python
+import couchdb_client
+from couchdb_client.models.dbs_info_entry import DbsInfoEntry
+from couchdb_client.models.post_dbs_info_request import PostDbsInfoRequest
+from couchdb_client.rest import ApiException
+from pprint import pprint
+
+# Defining the host is optional and defaults to http://localhost:5984
+# See configuration.py for a list of all supported configuration parameters.
+configuration = couchdb_client.Configuration(
+    host = "http://localhost:5984"
+)
+
+# The client must configure the authentication and authorization parameters
+# in accordance with the API server security policy.
+# Examples for each auth method are provided below, use the example that
+# satisfies your auth use case.
+
+# Configure HTTP basic authorization: basicAuth
+configuration = couchdb_client.Configuration(
+    username = os.environ["USERNAME"],
+    password = os.environ["PASSWORD"]
+)
+
+# Configure API key authorization: cookieAuth
+configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
+
+# Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+# configuration.api_key_prefix['cookieAuth'] = 'Bearer'
+
+# Configure Bearer authorization (JWT): bearerAuth
+configuration = couchdb_client.Configuration(
+    access_token = os.environ["BEARER_TOKEN"]
+)
+
+# Enter a context with an instance of the API client
+with couchdb_client.ApiClient(configuration) as api_client:
+    # Create an instance of the API class
+    api_instance = couchdb_client.DatabasesApi(api_client)
+    post_dbs_info_request = couchdb_client.PostDbsInfoRequest() # PostDbsInfoRequest | 
+
+    try:
+        # Information about several databases at once
+        api_response = api_instance.post_dbs_info(post_dbs_info_request)
+        print("The response of DatabasesApi->post_dbs_info:\n")
+        pprint(api_response)
+    except Exception as e:
+        print("Exception when calling DatabasesApi->post_dbs_info: %s\n" % e)
+```
+
+
+
+### Parameters
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **post_dbs_info_request** | [**PostDbsInfoRequest**](PostDbsInfoRequest.md)|  | 
+
+### Return type
+
+[**List[DbsInfoEntry]**](DbsInfoEntry.md)
+
+### Authorization
+
+[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+### HTTP response details
+
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+**200** | One entry per requested name, in order |  -  |
+**400** | CouchDB error |  -  |
+**401** | CouchDB error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **put_database**
 > Ok put_database(db, q=q, n=n, partitioned=partitioned)
 
@@ -274,6 +386,7 @@ Create a database
 
 * Basic Authentication (basicAuth):
 * Api Key Authentication (cookieAuth):
+* Bearer (JWT) Authentication (bearerAuth):
 
 ```python
 import couchdb_client
@@ -303,6 +416,11 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 
 # Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
 # configuration.api_key_prefix['cookieAuth'] = 'Bearer'
+
+# Configure Bearer authorization (JWT): bearerAuth
+configuration = couchdb_client.Configuration(
+    access_token = os.environ["BEARER_TOKEN"]
+)
 
 # Enter a context with an instance of the API client
 with couchdb_client.ApiClient(configuration) as api_client:
@@ -340,7 +458,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth)
+[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth), [bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 

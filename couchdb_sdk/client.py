@@ -34,6 +34,7 @@ class CouchDB:
         self._auth = gen.AuthenticationApi(self.client)
         self._dbs = gen.DatabasesApi(self.client)
         self._replication = gen.ReplicationApi(self.client)
+        self._maintenance = gen.MaintenanceApi(self.client)
 
     def __enter__(self) -> "CouchDB":
         return self
@@ -63,6 +64,33 @@ class CouchDB:
     def all_dbs(self) -> List[str]:
         with translate():
             return self._server.get_all_dbs()
+
+    def active_tasks(self) -> List[Dict[str, Any]]:
+        """Running compactions, indexing and replications."""
+        with translate():
+            return [t.to_dict() for t in self._maintenance.get_active_tasks()]
+
+    def dbs_info(self, names: List[str]) -> List[Dict[str, Any]]:
+        """Info for several databases at once: `{"key", "info"}` or `{"key", "error"}` each."""
+        with translate():
+            return [e.to_dict() for e in self._dbs.post_dbs_info(gen.PostDbsInfoRequest(keys=names))]
+
+    def scheduler_jobs(self, **kwargs: Any) -> Dict[str, Any]:
+        """Replication jobs the scheduler is running."""
+        with translate():
+            return self._replication.get_scheduler_jobs(**kwargs).to_dict()
+
+    def scheduler_docs(self, **kwargs: Any) -> Dict[str, Any]:
+        """State of replications defined in `_replicator` databases."""
+        with translate():
+            return self._replication.get_scheduler_docs(**kwargs).to_dict()
+
+    def db_updates(self, **kwargs: Any) -> Dict[str, Any]:
+        """One page of database events (`feed="longpoll"`, `since`, `timeout` ...)."""
+        timeout = kwargs.get("timeout")
+        extra = {"_request_timeout": timeout / 1000 + 10} if timeout else {}
+        with translate():
+            return self._server.get_db_updates(**kwargs, **extra).to_dict()
 
     # -- sessions ---------------------------------------------------------
     def _hook_session(self) -> None:
@@ -144,9 +172,10 @@ class CouchDB:
         return endpoint
 
     def replicate(self, source: str, target: str, **options: Any) -> Dict[str, Any]:
-        """Replicate between databases. Bare names are resolved against this server."""
-        def endpoint(x: str) -> Dict[str, Any]:
-            return {"url": x} if "://" in x else self._db_url(x)
+        """Replicate between databases. Bare names are resolved against this server
+        (with this client's credentials); full URLs are passed through as-is."""
+        def endpoint(x: str) -> Any:
+            return x if "://" in x else self._db_url(x)
 
         body = {"source": endpoint(source), "target": endpoint(target), **options}
         with translate():

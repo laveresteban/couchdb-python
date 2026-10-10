@@ -18,6 +18,7 @@ Delete an attachment
 
 * Basic Authentication (basicAuth):
 * Api Key Authentication (cookieAuth):
+* Bearer (JWT) Authentication (bearerAuth):
 
 ```python
 import couchdb_client
@@ -48,12 +49,17 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 # Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
 # configuration.api_key_prefix['cookieAuth'] = 'Bearer'
 
+# Configure Bearer authorization (JWT): bearerAuth
+configuration = couchdb_client.Configuration(
+    access_token = os.environ["BEARER_TOKEN"]
+)
+
 # Enter a context with an instance of the API client
 with couchdb_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = couchdb_client.AttachmentsApi(api_client)
     db = 'db_example' # str | Database name. System databases (`_users`, `_replicator`, ...) start with `_`.
-    docid = 'docid_example' # str | 
+    docid = 'docid_example' # str | Document id. Never starts with `_` on this path: `/{db}/_design/{ddoc}` and `/{db}/_local/{docid}` are separate operations. 
     attname = 'attname_example' # str | 
     rev = 'rev_example' # str | 
 
@@ -74,7 +80,7 @@ with couchdb_client.ApiClient(configuration) as api_client:
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **db** | **str**| Database name. System databases (&#x60;_users&#x60;, &#x60;_replicator&#x60;, ...) start with &#x60;_&#x60;. | 
- **docid** | **str**|  | 
+ **docid** | **str**| Document id. Never starts with &#x60;_&#x60; on this path: &#x60;/{db}/_design/{ddoc}&#x60; and &#x60;/{db}/_local/{docid}&#x60; are separate operations.  | 
  **attname** | **str**|  | 
  **rev** | **str**|  | 
 
@@ -84,7 +90,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth)
+[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth), [bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -104,14 +110,17 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **get_attachment**
-> bytearray get_attachment(db, docid, attname, rev=rev)
+> bytearray get_attachment(db, docid, attname, rev=rev, if_none_match=if_none_match)
 
 Download an attachment
+
+The response `Content-Type` is the attachment's own content type.
 
 ### Example
 
 * Basic Authentication (basicAuth):
 * Api Key Authentication (cookieAuth):
+* Bearer (JWT) Authentication (bearerAuth):
 
 ```python
 import couchdb_client
@@ -141,18 +150,24 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 # Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
 # configuration.api_key_prefix['cookieAuth'] = 'Bearer'
 
+# Configure Bearer authorization (JWT): bearerAuth
+configuration = couchdb_client.Configuration(
+    access_token = os.environ["BEARER_TOKEN"]
+)
+
 # Enter a context with an instance of the API client
 with couchdb_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = couchdb_client.AttachmentsApi(api_client)
     db = 'db_example' # str | Database name. System databases (`_users`, `_replicator`, ...) start with `_`.
-    docid = 'docid_example' # str | 
+    docid = 'docid_example' # str | Document id. Never starts with `_` on this path: `/{db}/_design/{ddoc}` and `/{db}/_local/{docid}` are separate operations. 
     attname = 'attname_example' # str | 
     rev = 'rev_example' # str |  (optional)
+    if_none_match = 'if_none_match_example' # str | An `ETag` from an earlier response; the server answers 304 if it still matches. (optional)
 
     try:
         # Download an attachment
-        api_response = api_instance.get_attachment(db, docid, attname, rev=rev)
+        api_response = api_instance.get_attachment(db, docid, attname, rev=rev, if_none_match=if_none_match)
         print("The response of AttachmentsApi->get_attachment:\n")
         pprint(api_response)
     except Exception as e:
@@ -167,9 +182,10 @@ with couchdb_client.ApiClient(configuration) as api_client:
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **db** | **str**| Database name. System databases (&#x60;_users&#x60;, &#x60;_replicator&#x60;, ...) start with &#x60;_&#x60;. | 
- **docid** | **str**|  | 
+ **docid** | **str**| Document id. Never starts with &#x60;_&#x60; on this path: &#x60;/{db}/_design/{ddoc}&#x60; and &#x60;/{db}/_local/{docid}&#x60; are separate operations.  | 
  **attname** | **str**|  | 
  **rev** | **str**|  | [optional] 
+ **if_none_match** | **str**| An &#x60;ETag&#x60; from an earlier response; the server answers 304 if it still matches. | [optional] 
 
 ### Return type
 
@@ -177,18 +193,19 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth)
+[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth), [bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: application/octet-stream, application/json
+ - **Accept**: application/octet-stream, */*, application/json
 
 ### HTTP response details
 
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**200** | Attachment bytes |  -  |
+**200** | Attachment bytes |  * ETag -  <br>  |
+**304** | Not modified since the &#x60;If-None-Match&#x60; ETag |  -  |
 **404** | CouchDB error |  -  |
 **401** | CouchDB error |  -  |
 **403** | CouchDB error |  -  |
@@ -200,10 +217,13 @@ Name | Type | Description  | Notes
 
 Upload an attachment
 
+CouchDB stores the request's `Content-Type` as the attachment's `content_type`, so send the real type (`image/png`, ...). Any media type is accepted; `application/octet-stream` is only the default. 
+
 ### Example
 
 * Basic Authentication (basicAuth):
 * Api Key Authentication (cookieAuth):
+* Bearer (JWT) Authentication (bearerAuth):
 
 ```python
 import couchdb_client
@@ -234,12 +254,17 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 # Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
 # configuration.api_key_prefix['cookieAuth'] = 'Bearer'
 
+# Configure Bearer authorization (JWT): bearerAuth
+configuration = couchdb_client.Configuration(
+    access_token = os.environ["BEARER_TOKEN"]
+)
+
 # Enter a context with an instance of the API client
 with couchdb_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = couchdb_client.AttachmentsApi(api_client)
     db = 'db_example' # str | Database name. System databases (`_users`, `_replicator`, ...) start with `_`.
-    docid = 'docid_example' # str | 
+    docid = 'docid_example' # str | Document id. Never starts with `_` on this path: `/{db}/_design/{ddoc}` and `/{db}/_local/{docid}` are separate operations. 
     attname = 'attname_example' # str | 
     body = None # bytearray | 
     rev = 'rev_example' # str | Current document revision (omit to create the document) (optional)
@@ -261,7 +286,7 @@ with couchdb_client.ApiClient(configuration) as api_client:
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **db** | **str**| Database name. System databases (&#x60;_users&#x60;, &#x60;_replicator&#x60;, ...) start with &#x60;_&#x60;. | 
- **docid** | **str**|  | 
+ **docid** | **str**| Document id. Never starts with &#x60;_&#x60; on this path: &#x60;/{db}/_design/{ddoc}&#x60; and &#x60;/{db}/_local/{docid}&#x60; are separate operations.  | 
  **attname** | **str**|  | 
  **body** | **bytearray**|  | 
  **rev** | **str**| Current document revision (omit to create the document) | [optional] 
@@ -272,7 +297,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth)
+[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth), [bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
