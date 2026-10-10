@@ -80,7 +80,7 @@ Both suites need a CouchDB server:
 
 ```sh
 docker run -d --name couchdb -p 5984:5984 -e COUCHDB_USER=admin -e COUCHDB_PASSWORD=password couchdb:3.4
-curl -X PUT http://admin:password@localhost:5984/_users
+for db in _users _replicator _global_changes; do curl -X PUT http://admin:password@localhost:5984/$db; done
 
 python -m venv .venv && .venv/Scripts/activate      # or: source .venv/bin/activate
 pip install -e . -r test-requirements.txt
