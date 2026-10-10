@@ -167,12 +167,14 @@ class ChangesFeed:
             try:
                 resp = self._open()
                 if resp.status >= 400:
-                    raise CouchDBError(resp.status, "", resp.read().decode("utf-8", "replace"))
+                    err = CouchDBError(resp.status, "", resp.read().decode("utf-8", "replace"))
+                    err.headers = resp.headers  # keeps Retry-After for the backoff
+                    raise err
                 attempt = 0  # a good connection resets the backoff
                 try:
                     for line in self._lines(resp):
                         if self._stopped:
-                            return
+                            break  # fall through so the checkpoint still saves
                         if not line:  # blank line is a heartbeat
                             continue
                         row = json.loads(line)
@@ -180,7 +182,8 @@ class ChangesFeed:
                             self.since = row["last_seq"]
                             break
                         yield row
-                        self.since = row.get("seq", self.since)
+                        if row.get("seq") is not None:  # null when seq_interval skips it
+                            self.since = row["seq"]
                         pending += 1
                         if self.checkpoint and pending >= self.batch_size:
                             self._save_checkpoint()

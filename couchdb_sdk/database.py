@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, Iterator, List, Optional
 
 import couchdb_client as gen
 
@@ -87,7 +87,8 @@ class Database:
 
     def exists(self) -> bool:
         try:
-            self.info()
+            with translate():
+                self._dbs.head_database(self.name)
             return True
         except NotFound:
             return False
@@ -108,10 +109,19 @@ class Database:
         doc["_id"], doc["_rev"] = res.id, res.rev
         return doc
 
-    def delete(self, doc_or_id: Any) -> None:
-        doc = self.get(doc_or_id) if isinstance(doc_or_id, str) else doc_or_id
+    def _rev(self, docid: str) -> str:
+        """Current revision of `docid`, read from the ETag of a HEAD request (no body)."""
         with translate():
-            self._docs.delete_document(self.name, doc["_id"], rev=doc["_rev"])
+            res = self._docs.head_document_with_http_info(self.name, docid)
+        return (res.headers.get("ETag") or res.headers.get("etag") or "").strip('"')
+
+    def delete(self, doc_or_id: Any) -> None:
+        if isinstance(doc_or_id, str):
+            docid, rev = doc_or_id, self._rev(doc_or_id)
+        else:
+            docid, rev = doc_or_id["_id"], doc_or_id["_rev"]
+        with translate():
+            self._docs.delete_document(self.name, docid, rev=rev)
 
     def update(self, docid: str, fn: Callable[[Doc], Doc], retries: int = 5) -> Doc:
         """Apply `fn` to the latest revision, retrying on conflicts."""
@@ -135,7 +145,7 @@ class Database:
         doc = dict(doc, _id=docid)
         if "_rev" not in doc:
             try:
-                doc["_rev"] = self.get(docid)["_rev"]
+                doc["_rev"] = self._rev(docid)
             except NotFound:
                 pass
         self.save(doc)
@@ -170,7 +180,66 @@ class Database:
         with translate():
             return [_plain(i) for i in self._query.get_indexes(self.name).indexes]
 
+    def iter_all_docs(self, batch_size: int = 500, **kwargs: Any) -> Iterator[Dict[str, Any]]:
+        """Yield every `all_docs` row, fetching `batch_size` rows per request."""
+        key = kwargs.pop("start_key", None)
+        skip = kwargs.pop("skip", 0)
+        while True:
+            rows = self.all_docs(start_key=key, skip=skip, limit=batch_size, **kwargs)
+            yield from rows
+            if len(rows) < batch_size:
+                return
+            key, skip = rows[-1]["key"], 1  # the last row starts the next page; skip it
+
+    def iter_find(self, selector: Doc, batch_size: int = 100, **kwargs: Any) -> Iterator[Doc]:
+        """Yield every document matching `selector`, following bookmarks."""
+        bookmark = kwargs.pop("bookmark", None)
+        while True:
+            res = self.find(selector, limit=batch_size, bookmark=bookmark, **kwargs)
+            yield from res.docs
+            if len(res.docs) < batch_size or not res.bookmark:
+                return
+            bookmark = res.bookmark
+
+    def bulk_get(self, refs: List[Any]) -> List[Dict[str, Any]]:
+        """Fetch many documents in one request. `refs` are ids or `{"id", "rev"}` dicts.
+
+        Each result has `docs`: a list of `{"ok": doc}` or `{"error": {...}}` entries.
+        """
+        docs = [{"id": r} if isinstance(r, str) else dict(r) for r in refs]
+        with translate():
+            res = self._docs.post_bulk_get(self.name, gen.BulkGetQuery.from_dict({"docs": docs}))
+        return [_plain(r) for r in res.results]
+
+    def revs_diff(self, revs: Dict[str, List[str]]) -> Dict[str, Dict[str, Any]]:
+        """Which of these revisions the database lacks, as `{id: {"missing": [...]}}`."""
+        with translate():
+            res = self._docs.post_revs_diff(self.name, revs)
+        return {docid: _plain(diff) for docid, diff in res.items()}
+
+    def purge(self, revs: Dict[str, List[str]]) -> Dict[str, Any]:
+        """Permanently remove revisions from `{id: [revs]}`. This cannot be undone."""
+        with translate():
+            return _plain(self._docs.post_purge(self.name, revs))
+
+    def explain(self, selector: Doc, **kwargs: Any) -> Dict[str, Any]:
+        """The index and plan CouchDB would use for a Mango query."""
+        with translate():
+            return _plain(self._query.post_explain(self.name, _find_query(selector, kwargs)))
+
+    def compact(self, ddoc: Optional[str] = None) -> None:
+        """Compact the database file, or one design document's view index. Runs in the background."""
+        with translate():
+            if ddoc is None:
+                self._dbs.post_compact(self.name, {})
+            else:
+                self._design.post_compact_design(self.name, ddoc, {})
+
     # -- design documents and views ---------------------------------------
+    def design_docs(self, **kwargs: Any) -> List[Dict[str, Any]]:
+        """Rows for every design document; pass `include_docs=True` for their bodies."""
+        with translate():
+            return _rows(self._design.get_design_docs(self.name, **kwargs))
     def design(self, name: str) -> Doc:
         with translate():
             return _plain(self._design.get_design_document(self.name, name))
@@ -178,7 +247,7 @@ class Database:
     def save_design(self, name: str, views: Dict[str, Dict[str, str]], **extra: Any) -> Doc:
         doc: Doc = {"_id": f"_design/{name}", "views": views, **extra}
         try:
-            doc["_rev"] = self.design(name)["_rev"]
+            doc["_rev"] = self._rev(f"_design/{name}")
         except NotFound:
             pass
         with translate():
@@ -187,7 +256,7 @@ class Database:
         return doc
 
     def delete_design(self, name: str) -> None:
-        rev = self.design(name)["_rev"]
+        rev = self._rev(f"_design/{name}")
         with translate():
             self._design.delete_design_document(self.name, name, rev=rev)
 
@@ -200,7 +269,7 @@ class Database:
                        content_type: str = "application/octet-stream") -> str:
         """Attach `data` to `docid` (creating the doc if needed); returns the new rev."""
         try:
-            rev: Optional[str] = self.get(docid)["_rev"]
+            rev: Optional[str] = self._rev(docid)
         except NotFound:
             rev = None
         with translate():
@@ -213,7 +282,7 @@ class Database:
             return bytes(self._attachments.get_attachment(self.name, docid, name))
 
     def delete_attachment(self, docid: str, name: str) -> str:
-        rev = self.get(docid)["_rev"]
+        rev = self._rev(docid)
         with translate():
             return self._attachments.delete_attachment(self.name, docid, name, rev=rev).rev
 

@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
+import urllib3
+
 import couchdb_client as gen
 
 from .database import Database
@@ -12,14 +14,24 @@ from .errors import NotFound, translate
 class CouchDB:
     """Connect to a CouchDB server.
 
+    Reads (GET and HEAD) are retried up to `max_retries` times on 429, 502, 503
+    and 504 and on connection errors, honoring `Retry-After`. Writes are never
+    retried, since a retried write could apply twice.
+
     >>> with CouchDB("http://localhost:5984", "admin", "password") as couch:
     ...     db = couch.create_database("people")
     ...     db["alice"] = {"age": 30}
     """
 
     def __init__(self, url: str = "http://localhost:5984",
-                 username: Optional[str] = None, password: Optional[str] = None) -> None:
-        config = gen.Configuration(host=url.rstrip("/"), username=username, password=password)
+                 username: Optional[str] = None, password: Optional[str] = None,
+                 max_retries: int = 3) -> None:
+        # urllib3 accepts a Retry object here although the generated type says int.
+        retry = urllib3.Retry(total=max_retries, backoff_factor=0.5,
+                              status_forcelist=(429, 502, 503, 504),
+                              allowed_methods=("GET", "HEAD"), raise_on_status=False)
+        config = gen.Configuration(host=url.rstrip("/"), username=username, password=password,
+                                   retries=retry)  # type: ignore[arg-type]
         self.client = gen.ApiClient(config)
         self._server = gen.ServerApi(self.client)
         self._auth = gen.AuthenticationApi(self.client)
@@ -55,6 +67,26 @@ class CouchDB:
         with translate():
             return self._server.get_all_dbs()
 
+    def active_tasks(self) -> List[Dict[str, Any]]:
+        """Running compactions, indexers and replications."""
+        with translate():
+            return [t.to_dict() for t in self._server.get_active_tasks()]
+
+    def scheduler_jobs(self, limit: Optional[int] = None, skip: Optional[int] = None) -> Dict[str, Any]:
+        """Replication jobs known to the scheduler."""
+        with translate():
+            return self._server.get_scheduler_jobs(limit=limit, skip=skip).to_dict()
+
+    def scheduler_docs(self, limit: Optional[int] = None, skip: Optional[int] = None) -> Dict[str, Any]:
+        """Replication documents known to the scheduler."""
+        with translate():
+            return self._server.get_scheduler_docs(limit=limit, skip=skip).to_dict()
+
+    def node_config(self, node: str = "_local") -> Dict[str, Any]:
+        """Configuration sections of one node, keyed by section name."""
+        with translate():
+            return self._server.get_node_config(node)
+
     # -- sessions ---------------------------------------------------------
     def login(self, name: str, password: str) -> None:
         """Start a cookie session; later requests send the AuthSession cookie."""
@@ -85,6 +117,11 @@ class CouchDB:
     def delete_database(self, name: str) -> None:
         with translate():
             self._dbs.delete_database(name)
+
+    def dbs_info(self, names: List[str]) -> List[Dict[str, Any]]:
+        """Info for several databases in one request. Missing ones carry an `error`."""
+        with translate():
+            return [r.to_dict() for r in self._dbs.post_dbs_info(gen.DbsInfoRequest(keys=names))]
 
     def __getitem__(self, name: str) -> Database:
         return Database(self.client, name)

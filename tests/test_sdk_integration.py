@@ -193,3 +193,83 @@ def test_follow_continuous_resumes_from_checkpoint(database):
     database.save({"_id": "c"})
     feed = database.follow(feed="continuous", checkpoint="cont", heartbeat=1000)
     assert next(iter(feed))["id"] == "c"
+
+
+def test_follow_continuous_with_seq_interval_resumes(database):
+    # seq is null on most rows here; the checkpoint must still resume correctly.
+    database.bulk_save([{"_id": f"s{i}"} for i in range(4)])
+    feed = database.follow(feed="continuous", checkpoint="seqint", heartbeat=1000, seq_interval=3)
+    seen = []
+    for row in feed:
+        seen.append(row["id"])
+        if len(seen) == 4:
+            feed.stop()
+    assert sorted(seen) == ["s0", "s1", "s2", "s3"]
+
+    database.save({"_id": "s9"})
+    feed = database.follow(feed="continuous", checkpoint="seqint", heartbeat=1000, seq_interval=3)
+    resumed = []
+    for row in feed:
+        resumed.append(row["id"])
+        if row["id"] == "s9":
+            feed.stop()
+    # Resumed from the checkpoint: some earlier rows may replay (at-least-once,
+    # bounded by seq_interval), but not all of them.
+    replayed = [r for r in resumed if r != "s9"]
+    assert resumed[-1] == "s9"
+    assert len(replayed) < 4
+
+
+def test_exists_and_revision_lookup(couch, database):
+    assert database.exists()
+    assert not couch[unique_name()].exists()
+    doc = database.save({"_id": "a"})
+    assert database._rev("a") == doc["_rev"]
+    with pytest.raises(errors.NotFound):
+        database._rev("missing")
+
+
+def test_bulk_get_and_revs_diff(database):
+    first = database.save({"_id": "a", "n": 1})
+    rows = database.bulk_get(["a", {"id": "missing"}])
+    assert rows[0]["docs"][0]["ok"]["n"] == 1
+    assert "error" in rows[1]["docs"][0]
+    diff = database.revs_diff({"a": [first["_rev"], "9-zzz"]})
+    assert diff["a"]["missing"] == ["9-zzz"]
+
+
+def test_iter_all_docs_pages_through_every_row(database):
+    database.bulk_save([{"_id": f"d{i:02d}"} for i in range(7)])
+    assert [r["id"] for r in database.iter_all_docs(batch_size=3)] == [f"d{i:02d}" for i in range(7)]
+
+
+def test_iter_find_follows_bookmarks(database):
+    database.bulk_save([{"age": a} for a in range(5)])
+    ages = sorted(d["age"] for d in database.iter_find({"age": {"$gte": 0}}, batch_size=2))
+    assert ages == [0, 1, 2, 3, 4]
+
+
+def test_explain_design_docs_and_purge(database):
+    database.save_design("stats", {"by_age": {"map": "function(d){ emit(d.age, 1); }"}})
+    assert [r["id"] for r in database.design_docs()] == ["_design/stats"]
+    assert database.explain({"age": {"$gt": 1}})["dbname"] == database.name
+
+    doc = database.save({"_id": "p"})
+    assert database.purge({"p": [doc["_rev"]]})["purged"] == {"p": [doc["_rev"]]}
+    assert "p" not in database
+
+
+def test_compact_and_server_tasks(couch, database):
+    database.save_design("stats", {"by_age": {"map": "function(d){ emit(d.age, 1); }"}})
+    database.compact()
+    database.compact("stats")
+    assert isinstance(couch.active_tasks(), list)
+
+
+def test_dbs_info_node_config_and_scheduler(couch, database):
+    info = couch.dbs_info([database.name, unique_name()])
+    assert info[0]["info"]["db_name"] == database.name
+    assert info[1]["error"] == "not_found"
+    assert "chttpd" in couch.node_config()
+    assert "jobs" in couch.scheduler_jobs()
+    assert "docs" in couch.scheduler_docs()

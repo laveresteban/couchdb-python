@@ -5,6 +5,7 @@ import contextlib
 import json
 from typing import Any, Iterator
 
+import urllib3
 from couchdb_client.exceptions import ApiException
 
 
@@ -62,8 +63,14 @@ def from_api_exception(exc: ApiException) -> CouchDBError:
 
 @contextlib.contextmanager
 def translate() -> Iterator[None]:
-    """Re-raise generated-client ApiExceptions as typed CouchDBErrors."""
+    """Re-raise generated-client ApiExceptions as typed CouchDBErrors.
+
+    Transport failures (connection refused, retries exhausted) become a
+    CouchDBError with status 0, so callers handle one error type.
+    """
     try:
         yield
     except ApiException as exc:
         raise from_api_exception(exc) from None
+    except urllib3.exceptions.HTTPError as exc:
+        raise CouchDBError(0, type(exc).__name__, str(exc)) from None

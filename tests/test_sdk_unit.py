@@ -209,3 +209,90 @@ def test_continuous_rejects_filters():
     db = mock.Mock()
     with pytest.raises(ValueError):
         ChangesFeed(db, feed="continuous", selector={"t": 1})
+
+
+def test_continuous_keeps_position_when_seq_is_null():
+    # With seq_interval, most rows carry seq: null. The position must not reset to None.
+    stream = FakeStream([
+        b'{"seq":"3","id":"a","changes":[]}\n'
+        b'{"seq":null,"id":"b","changes":[]}\n'
+        b'{"seq":null,"id":"c","changes":[]}\n'
+    ])
+    feed = continuous_feed([stream])
+    rows = []
+    for row in feed:
+        rows.append(row)
+        if len(rows) == 3:
+            feed.stop()
+    assert [r["id"] for r in rows] == ["a", "b", "c"]
+    assert feed.since == "3"
+
+
+def test_continuous_honors_retry_after_on_error_status():
+    busy = FakeStream([], status=503, body=b'{"error":"busy"}')
+    busy.headers = {"Retry-After": "4"}
+    feed = continuous_feed([busy])
+    with mock.patch("couchdb_sdk.changes.time.sleep") as sleep:
+        sleep.side_effect = lambda _: feed.stop()  # end the loop after one backoff
+        assert list(feed._stream()) == []
+    sleep.assert_called_once_with(4.0)
+
+
+def test_transport_errors_become_status_zero():
+    import urllib3
+
+    with pytest.raises(errors.CouchDBError) as exc:
+        with errors.translate():
+            raise urllib3.exceptions.MaxRetryError(None, "/", reason=None)
+    assert exc.value.status == 0
+
+
+def make_server(script):
+    """Serve (status, headers, body) entries in order; the last one repeats.
+    Returns the server and the list of request methods it saw."""
+    import http.server
+    import threading
+
+    hits = []
+
+    class Handler(http.server.BaseHTTPRequestHandler):
+        def _reply(self):
+            hits.append(self.command)
+            status, headers, body = script[min(len(hits), len(script)) - 1]
+            self.send_response(status)
+            for key, value in headers.items():
+                self.send_header(key, value)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            if self.command != "HEAD":
+                self.wfile.write(body)
+
+        do_GET = do_HEAD = do_PUT = _reply
+
+        def log_message(self, *args):
+            pass
+
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    return server, hits
+
+
+def test_reads_are_retried_on_503_and_writes_are_not():
+    from couchdb_sdk import CouchDB
+
+    server, hits = make_server([
+        (503, {"Retry-After": "0"}, b"{}"),
+        (200, {}, b'{"status": "ok"}'),
+    ])
+    try:
+        with CouchDB(f"http://127.0.0.1:{server.server_port}", max_retries=3) as couch:
+            assert couch.up() is True  # GET: 503 once, then 200
+            assert hits == ["GET", "GET"]
+            hits.clear()
+            with pytest.raises(errors.CouchDBError) as exc:
+                couch.create_database("x")  # PUT: never retried
+            assert exc.value.status == 503
+            assert hits == ["PUT"]
+    finally:
+        server.shutdown()

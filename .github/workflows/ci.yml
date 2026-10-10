@@ -27,6 +27,11 @@ jobs:
         run: |
           for i in $(seq 60); do curl -sf http://localhost:5984/_up && break; sleep 1; done
           curl -sf -X PUT http://admin:password@localhost:5984/_users || true
+      - name: Provenance matches version
+        run: |
+          v=$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)
+          grep -qx "spec_version=$v" .generated-from
+          grep -qx "spec_dirty=false" .generated-from
       - run: pytest -v tests
 
   conformance:
