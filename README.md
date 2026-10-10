@@ -34,7 +34,15 @@ with CouchDB("http://localhost:5984", "admin", "password") as couch:
     for change in db.follow(checkpoint="indexer", include_docs=True):
         ...  # retries transient errors; resumes from _local/indexer after restart
     couch.replicate("people", "people_backup", create_target=True)
+
+    # Replication building blocks, for writing your own sync
+    db.revs_diff({"alice": [alice["_rev"]]})            # revisions the db is missing
+    db.bulk_get([{"id": "alice"}], revs=True)           # docs with _revisions
+    db.bulk_save(docs_with_revisions, new_edits=False)  # keep the given _rev ids
 ```
+
+`login()` keeps the cookie session alive: it takes the renewed cookie CouchDB
+sends and logs in again once if the session expires.
 
 Errors are typed: `NotFound` (also a `KeyError`), `Conflict`, `Unauthorized`,
 `Forbidden`, `PreconditionFailed`, all subclasses of `CouchDBError` with

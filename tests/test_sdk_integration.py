@@ -193,3 +193,63 @@ def test_follow_continuous_resumes_from_checkpoint(database):
     database.save({"_id": "c"})
     feed = database.follow(feed="continuous", checkpoint="cont", heartbeat=1000)
     assert next(iter(feed))["id"] == "c"
+
+
+def test_bulk_save_sets_revisions(database):
+    docs = [{"_id": "a"}, {"v": 1}]
+    database.bulk_save(docs)
+    assert all(d["_rev"].startswith("1-") for d in docs)
+    database.bulk_save(docs)  # same list again is an update, not a conflict
+    assert all(d["_rev"].startswith("2-") for d in docs)
+
+
+def test_expired_session_logs_in_again(couch, database):
+    """A request with an expired cookie gets a 401; the client logs in again."""
+    database.set_security(members={"names": [USER], "roles": []})
+    # Shorten the server's session timeout to 1 s for this test.
+    cfg = f"{URL}/_node/_local/_config/chttpd_auth/timeout"
+    http = couch.client.rest_client.pool_manager
+    auth = {"Authorization": couch.client.configuration.get_basic_auth_token(),
+            "Content-Type": "application/json"}
+    res = http.request("GET", cfg, headers=auth)
+    old = res.json() if res.status == 200 else None
+    http.request("PUT", cfg, headers=auth, body='"1"')
+    try:
+        with CouchDB(URL) as c:
+            c.login(USER, PASSWORD)
+            first = c.client.cookie
+            time.sleep(2.5)
+            assert c[database.name].info()["db_name"] == database.name
+            assert c.client.cookie != first
+    finally:
+        if old is None:
+            http.request("DELETE", cfg, headers=auth)
+        else:
+            http.request("PUT", cfg, headers=auth, body=f'"{old}"')
+
+
+def test_replication_primitives(database):
+    database.save({"_id": "a", "v": 1})
+    rev = database.update("a", lambda d: {**d, "v": 2})["_rev"]
+    assert database.revs_diff({"a": [rev, "9-x"]})["a"]["missing"] == ["9-x"]
+
+    res = database.bulk_get([{"id": "a"}, {"id": "zz"}], revs=True)
+    doc = res[0]["docs"][0]["ok"]
+    assert doc["v"] == 2 and len(doc["_revisions"]["ids"]) == 2
+    assert res[1]["docs"][0]["error"]["error"] == "not_found"
+
+    database.bulk_save([{"_id": "x", "_rev": "1-aaa", "v": 1}], new_edits=False)
+    assert database["x"]["_rev"] == "1-aaa"
+
+    database.put_local("cp", {"seq": "1"})
+    database.delete_local("cp")
+    with pytest.raises(errors.NotFound):
+        database.get_local("cp")
+
+
+def test_follow_continuous_with_selector(database):
+    database.bulk_save([{"_id": "a", "t": 1}, {"_id": "b", "t": 2}])
+    feed = database.follow(feed="continuous", selector={"t": 2}, heartbeat=1000)
+    row = next(iter(feed))
+    feed.stop()
+    assert row["id"] == "b"

@@ -9,8 +9,9 @@ Name | Type | Description | Notes
 **id** | **str** |  | [optional] 
 **rev** | **str** |  | [optional] 
 **deleted** | **bool** |  | [optional] 
-**attachments** | **Dict[str, object]** |  | [optional] 
+**attachments** | [**Dict[str, Attachment]**](Attachment.md) |  | [optional] 
 **conflicts** | **List[str]** |  | [optional] 
+**revisions** | [**Revisions**](Revisions.md) |  | [optional] 
 
 ## Example
 

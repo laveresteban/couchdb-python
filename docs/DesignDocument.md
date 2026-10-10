@@ -9,7 +9,11 @@ Name | Type | Description | Notes
 **rev** | **str** |  | [optional] 
 **language** | **str** |  | [optional] [default to 'javascript']
 **views** | [**Dict[str, DesignDocumentViewsValue]**](DesignDocumentViewsValue.md) |  | [optional] 
-**options** | **Dict[str, object]** |  | [optional] 
+**filters** | **Dict[str, str]** | Filter function name to JavaScript source | [optional] 
+**updates** | **Dict[str, str]** | Update handler name to JavaScript source | [optional] 
+**validate_doc_update** | **str** |  | [optional] 
+**autoupdate** | **bool** |  | [optional] 
+**options** | **Dict[str, object]** | Design document options, e.g. &#x60;{\&quot;partitioned\&quot;: false}&#x60; | [optional] 
 
 ## Example
 

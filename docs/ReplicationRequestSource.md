@@ -1,6 +1,6 @@
 # ReplicationRequestSource
 
-Database URL, or an object with url and auth
+Object with `url` and optional `auth` (e.g. `{\"basic\": {\"username\": ..., \"password\": ...}}`)
 
 ## Properties
 

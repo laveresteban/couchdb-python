@@ -9,7 +9,9 @@ Name | Type | Description | Notes
 **session_id** | **str** |  | [optional] 
 **source_last_seq** | **str** |  | [optional] 
 **local_id** | **str** |  | [optional] 
-**history** | **List[Dict[str, object]]** |  | [optional] 
+**no_changes** | **bool** |  | [optional] 
+**replication_id_version** | **int** |  | [optional] 
+**history** | [**List[ReplicationResultHistoryInner]**](ReplicationResultHistoryInner.md) |  | [optional] 
 
 ## Example
 

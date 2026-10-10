@@ -5,6 +5,7 @@ import json
 import random
 import time
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterator, Optional, TypeVar
+from urllib.parse import quote, urlencode
 
 import urllib3
 
@@ -15,10 +16,20 @@ if TYPE_CHECKING:
 
 T = TypeVar("T")
 
+# Connection drops and timeouts. Other urllib3 errors (bad URL, bad header)
+# won't fix themselves, so they aren't retried.
+_NETWORK_ERRORS = (
+    urllib3.exceptions.ProtocolError,
+    urllib3.exceptions.TimeoutError,
+    urllib3.exceptions.NewConnectionError,
+    urllib3.exceptions.MaxRetryError,
+    urllib3.exceptions.ProxyError,
+)
+
 
 def is_transient(exc: Exception) -> bool:
     """Network errors, 429 and 5xx are worth retrying; other errors are not."""
-    if isinstance(exc, urllib3.exceptions.HTTPError):
+    if isinstance(exc, _NETWORK_ERRORS):
         return True
     return isinstance(exc, CouchDBError) and (exc.status in (0, 429) or exc.status >= 500)
 
@@ -38,6 +49,7 @@ class ChangesFeed:
     client. `feed="continuous"` holds one connection open and reads changes
     line by line as CouchDB emits them (lower latency); it reads the raw HTTP
     stream directly, since the generated client would wait for the whole body.
+    `doc_ids` / `selector` filter server-side in both modes.
 
     Transient failures are retried with jittered exponential backoff, or after
     the server's `Retry-After`, capped at `max_backoff`. With `checkpoint`, the
@@ -54,9 +66,6 @@ class ChangesFeed:
                  feed: str = "longpoll", timeout: int = 60_000, heartbeat: Optional[int] = None,
                  batch_size: int = 500, max_retries: Optional[int] = None,
                  max_backoff: float = 30.0, **params: Any) -> None:
-        if feed == "continuous" and ("doc_ids" in params or "selector" in params):
-            raise ValueError("continuous feed cannot filter by doc_ids/selector; "
-                             "use feed='longpoll'")
         self.db = db
         self.since = since
         self.checkpoint = checkpoint
@@ -129,16 +138,25 @@ class ChangesFeed:
 
     # -- continuous feed --------------------------------------------------
     def _open(self) -> Any:
-        """Open a raw streaming GET on the continuous feed from self.since."""
+        """Open a raw streaming request on the continuous feed from self.since.
+
+        Filters by `doc_ids` / `selector` go in a POST body, like `Database.changes`.
+        """
         cfg = self.db.client.configuration
         hb = self.heartbeat if self.heartbeat is not None else 30_000
+        params = dict(self.params)
+        body: Optional[Dict[str, Any]] = None
+        doc_ids, selector = params.pop("doc_ids", None), params.pop("selector", None)
+        if doc_ids is not None or selector is not None:
+            params.setdefault("filter", "_selector" if selector is not None else "_doc_ids")
+            body = {"selector": selector} if selector is not None else {"doc_ids": doc_ids}
         fields: Dict[str, str] = {"feed": "continuous", "since": str(self.since),
                                   "heartbeat": str(hb)}
-        for key, val in self.params.items():
+        for key, val in params.items():
             if val is None:
                 continue
             fields[key] = "true" if val is True else "false" if val is False else str(val)
-        headers: Dict[str, str] = {}
+        headers: Dict[str, str] = {"Accept": "application/json"}
         token = cfg.get_basic_auth_token()
         if token:
             headers["Authorization"] = token
@@ -147,8 +165,12 @@ class ChangesFeed:
             headers["Cookie"] = cookie
         # Read timeout must outlast the heartbeat: a longer silence means a dead feed.
         timeout = urllib3.Timeout(connect=10.0, read=hb / 1000 + 10)
+        url = f"{cfg.host}/{quote(self.db.name, safe='')}/_changes?{urlencode(fields)}"
+        if body is not None:
+            headers["Content-Type"] = "application/json"
         return self.db.client.rest_client.pool_manager.request(
-            "GET", f"{cfg.host}/{self.db.name}/_changes", fields=fields, headers=headers,
+            "POST" if body is not None else "GET", url, headers=headers,
+            body=json.dumps(body) if body is not None else None,
             preload_content=False, timeout=timeout, retries=False)
 
     @staticmethod
@@ -180,7 +202,8 @@ class ChangesFeed:
                             self.since = row["last_seq"]
                             break
                         yield row
-                        self.since = row.get("seq", self.since)
+                        if row.get("seq") is not None:  # null with seq_interval
+                            self.since = row["seq"]
                         pending += 1
                         if self.checkpoint and pending >= self.batch_size:
                             self._save_checkpoint()

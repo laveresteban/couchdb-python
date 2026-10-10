@@ -52,7 +52,7 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 with couchdb_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = couchdb_client.PartitionsApi(api_client)
-    db = 'db_example' # str | Database name
+    db = 'db_example' # str | Database name. System databases (`_users`, `_replicator`, ...) start with `_`.
     partition = 'partition_example' # str | 
     all_docs_query = couchdb_client.AllDocsQuery() # AllDocsQuery | 
 
@@ -72,7 +72,7 @@ with couchdb_client.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **db** | **str**| Database name | 
+ **db** | **str**| Database name. System databases (&#x60;_users&#x60;, &#x60;_replicator&#x60;, ...) start with &#x60;_&#x60;. | 
  **partition** | **str**|  | 
  **all_docs_query** | [**AllDocsQuery**](AllDocsQuery.md)|  | 
 
@@ -95,6 +95,8 @@ Name | Type | Description  | Notes
 |-------------|-------------|------------------|
 **200** | Rows |  -  |
 **401** | CouchDB error |  -  |
+**400** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -142,7 +144,7 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 with couchdb_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = couchdb_client.PartitionsApi(api_client)
-    db = 'db_example' # str | Database name
+    db = 'db_example' # str | Database name. System databases (`_users`, `_replicator`, ...) start with `_`.
     partition = 'partition_example' # str | 
     find_query = couchdb_client.FindQuery() # FindQuery | 
 
@@ -162,7 +164,7 @@ with couchdb_client.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **db** | **str**| Database name | 
+ **db** | **str**| Database name. System databases (&#x60;_users&#x60;, &#x60;_replicator&#x60;, ...) start with &#x60;_&#x60;. | 
  **partition** | **str**|  | 
  **find_query** | [**FindQuery**](FindQuery.md)|  | 
 
@@ -185,6 +187,8 @@ Name | Type | Description  | Notes
 |-------------|-------------|------------------|
 **200** | Matching documents |  -  |
 **401** | CouchDB error |  -  |
+**400** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

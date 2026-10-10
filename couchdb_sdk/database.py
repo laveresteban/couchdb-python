@@ -79,6 +79,7 @@ class Database:
         self._changes = gen.ChangesApi(c)
         self._security = gen.SecurityApi(c)
         self._partitions = gen.PartitionsApi(c)
+        self._replication = gen.ReplicationApi(c)
 
     # -- database ---------------------------------------------------------
     def info(self) -> Dict[str, Any]:
@@ -123,10 +124,22 @@ class Database:
                     raise
         raise AssertionError("unreachable")
 
-    def bulk_save(self, docs: List[Doc]) -> List[Dict[str, Any]]:
+    def bulk_save(self, docs: List[Doc], new_edits: bool = True) -> List[Dict[str, Any]]:
+        """Write many docs at once. Docs that were saved get their new `_id`/`_rev`.
+
+        With `new_edits=False` the docs keep the `_rev` (and `_revisions`) you
+        give them, the way a replicator writes; CouchDB then only reports failures.
+        """
+        body: Dict[str, Any] = {"docs": docs}
+        if not new_edits:
+            body["new_edits"] = False
         with translate():
-            res = self._docs.post_bulk_docs(self.name, gen.BulkDocs.from_dict({"docs": docs}))
-        return [_plain(r) for r in res]
+            res = [_plain(r) for r in self._docs.post_bulk_docs(self.name, gen.BulkDocs.from_dict(body))]
+        if new_edits:
+            for doc, row in zip(docs, res):
+                if row.get("ok") or (row.get("rev") and not row.get("error")):
+                    doc["_id"], doc["_rev"] = row["id"], row["rev"]
+        return res
 
     def __getitem__(self, docid: str) -> Doc:
         return self.get(docid)
@@ -234,6 +247,25 @@ class Database:
         """Iterate changes forever; see `ChangesFeed` for retry and checkpoint options."""
         return ChangesFeed(self, **kwargs)
 
+    # -- replication primitives -------------------------------------------
+    def revs_diff(self, revs: Dict[str, List[str]]) -> Dict[str, Dict[str, Any]]:
+        """Which of the given revisions this database is missing, per doc id."""
+        with translate():
+            res = self._replication.post_revs_diff(self.name, revs)
+        return {docid: _plain(v) for docid, v in res.items()}
+
+    def bulk_get(self, docs: List[Dict[str, Any]], revs: bool = False, latest: bool = False,
+                 attachments: bool = False) -> List[Dict[str, Any]]:
+        """Fetch many docs/revisions at once. `docs` items are `{"id", "rev"?, "atts_since"?}`.
+
+        Returns one entry per requested id: `{"id": ..., "docs": [{"ok": doc} | {"error": {...}}]}`.
+        """
+        with translate():
+            res = self._replication.post_bulk_get(
+                self.name, gen.BulkGetRequest.from_dict({"docs": docs}),
+                revs=revs or None, latest=latest or None, attachments=attachments or None)
+        return [_plain(r) for r in res.results]
+
     # -- local documents --------------------------------------------------
     def get_local(self, docid: str) -> Doc:
         with translate():
@@ -244,6 +276,12 @@ class Database:
         with translate():
             res = self._docs.put_local_document(self.name, docid, gen.Document.from_dict(doc))
         return dict(doc, _id=res.id, _rev=res.rev)
+
+    def delete_local(self, docid: str, rev: Optional[str] = None) -> None:
+        if rev is None:
+            rev = self.get_local(docid).get("_rev")
+        with translate():
+            self._docs.delete_local_document(self.name, docid, rev=rev)
 
     # -- security ---------------------------------------------------------
     def security(self) -> Dict[str, Any]:

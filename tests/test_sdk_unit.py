@@ -203,9 +203,53 @@ def test_continuous_raises_on_fatal_status():
     assert exc.value.status == 404
 
 
-def test_continuous_rejects_filters():
+def test_continuous_seq_null_keeps_last_position():
+    # With seq_interval, CouchDB sends "seq": null on most rows.
+    stream = FakeStream([
+        b'{"seq":"5","id":"a","changes":[]}\n',
+        b'{"seq":null,"id":"b","changes":[]}\n',
+    ])
+    feed = continuous_feed([stream])
+    rows = []
+    for row in feed:
+        rows.append(row)
+        if len(rows) == 2:
+            feed.stop()
+    assert feed.since == "5"
+
+
+def _opened_request(**kwargs):
     from couchdb_sdk.changes import ChangesFeed
 
     db = mock.Mock()
-    with pytest.raises(ValueError):
-        ChangesFeed(db, feed="continuous", selector={"t": 1})
+    db.name = "a/b+c"
+    db.client.configuration.host = "http://couch"
+    db.client.configuration.get_basic_auth_token.return_value = None
+    db.client.cookie = None
+    ChangesFeed(db, feed="continuous", **kwargs)._open()
+    return db.client.rest_client.pool_manager.request.call_args
+
+
+def test_continuous_encodes_database_name():
+    args = _opened_request()
+    assert args.args[0] == "GET"
+    assert args.args[1].startswith("http://couch/a%2Fb%2Bc/_changes?")
+
+
+def test_continuous_filters_post_a_body():
+    import json
+
+    args = _opened_request(selector={"t": 1})
+    assert args.args[0] == "POST"
+    assert "filter=_selector" in args.args[1]
+    assert json.loads(args.kwargs["body"]) == {"selector": {"t": 1}}
+
+
+def test_only_network_errors_are_transient():
+    import urllib3
+
+    from couchdb_sdk.changes import is_transient
+
+    assert is_transient(urllib3.exceptions.ProtocolError("reset"))
+    assert is_transient(urllib3.exceptions.ReadTimeoutError(None, "/", "slow"))
+    assert not is_transient(urllib3.exceptions.LocationParseError("bad url"))

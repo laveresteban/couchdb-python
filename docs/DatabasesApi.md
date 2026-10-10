@@ -53,7 +53,7 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 with couchdb_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = couchdb_client.DatabasesApi(api_client)
-    db = 'db_example' # str | Database name
+    db = 'db_example' # str | Database name. System databases (`_users`, `_replicator`, ...) start with `_`.
 
     try:
         # Delete a database
@@ -71,7 +71,7 @@ with couchdb_client.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **db** | **str**| Database name | 
+ **db** | **str**| Database name. System databases (&#x60;_users&#x60;, &#x60;_replicator&#x60;, ...) start with &#x60;_&#x60;. | 
 
 ### Return type
 
@@ -93,6 +93,8 @@ Name | Type | Description  | Notes
 **200** | Database deleted |  -  |
 **202** | Database deleted, quorum not met |  -  |
 **404** | CouchDB error |  -  |
+**401** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -139,7 +141,7 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 with couchdb_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = couchdb_client.DatabasesApi(api_client)
-    db = 'db_example' # str | Database name
+    db = 'db_example' # str | Database name. System databases (`_users`, `_replicator`, ...) start with `_`.
 
     try:
         # Get database information
@@ -157,7 +159,7 @@ with couchdb_client.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **db** | **str**| Database name | 
+ **db** | **str**| Database name. System databases (&#x60;_users&#x60;, &#x60;_replicator&#x60;, ...) start with &#x60;_&#x60;. | 
 
 ### Return type
 
@@ -223,7 +225,7 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 with couchdb_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = couchdb_client.DatabasesApi(api_client)
-    db = 'db_example' # str | Database name
+    db = 'db_example' # str | Database name. System databases (`_users`, `_replicator`, ...) start with `_`.
 
     try:
         # Check database existence
@@ -239,7 +241,7 @@ with couchdb_client.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **db** | **str**| Database name | 
+ **db** | **str**| Database name. System databases (&#x60;_users&#x60;, &#x60;_replicator&#x60;, ...) start with &#x60;_&#x60;. | 
 
 ### Return type
 
@@ -306,7 +308,7 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 with couchdb_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = couchdb_client.DatabasesApi(api_client)
-    db = 'db_example' # str | Database name
+    db = 'db_example' # str | Database name. System databases (`_users`, `_replicator`, ...) start with `_`.
     q = 56 # int | Number of shards (optional)
     n = 56 # int | Number of replicas (optional)
     partitioned = False # bool |  (optional) (default to False)
@@ -327,7 +329,7 @@ with couchdb_client.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **db** | **str**| Database name | 
+ **db** | **str**| Database name. System databases (&#x60;_users&#x60;, &#x60;_replicator&#x60;, ...) start with &#x60;_&#x60;. | 
  **q** | **int**| Number of shards | [optional] 
  **n** | **int**| Number of replicas | [optional] 
  **partitioned** | **bool**|  | [optional] [default to False]
@@ -354,6 +356,7 @@ Name | Type | Description  | Notes
 **400** | CouchDB error |  -  |
 **401** | CouchDB error |  -  |
 **412** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

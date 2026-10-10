@@ -57,7 +57,7 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 with couchdb_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = couchdb_client.DocumentsApi(api_client)
-    db = 'db_example' # str | Database name
+    db = 'db_example' # str | Database name. System databases (`_users`, `_replicator`, ...) start with `_`.
     docid = 'docid_example' # str | 
     if_match = 'if_match_example' # str | Document revision (alternative to `rev`) (optional)
     rev = 'rev_example' # str |  (optional)
@@ -78,7 +78,7 @@ with couchdb_client.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **db** | **str**| Database name | 
+ **db** | **str**| Database name. System databases (&#x60;_users&#x60;, &#x60;_replicator&#x60;, ...) start with &#x60;_&#x60;. | 
  **docid** | **str**|  | 
  **if_match** | **str**| Document revision (alternative to &#x60;rev&#x60;) | [optional] 
  **rev** | **str**|  | [optional] 
@@ -104,6 +104,8 @@ Name | Type | Description  | Notes
 **202** | Deletion accepted |  -  |
 **404** | CouchDB error |  -  |
 **409** | CouchDB error |  -  |
+**401** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -150,7 +152,7 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 with couchdb_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = couchdb_client.DocumentsApi(api_client)
-    db = 'db_example' # str | Database name
+    db = 'db_example' # str | Database name. System databases (`_users`, `_replicator`, ...) start with `_`.
     docid = 'docid_example' # str | 
     rev = 'rev_example' # str |  (optional)
 
@@ -170,7 +172,7 @@ with couchdb_client.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **db** | **str**| Database name | 
+ **db** | **str**| Database name. System databases (&#x60;_users&#x60;, &#x60;_replicator&#x60;, ...) start with &#x60;_&#x60;. | 
  **docid** | **str**|  | 
  **rev** | **str**|  | [optional] 
 
@@ -193,11 +195,14 @@ Name | Type | Description  | Notes
 |-------------|-------------|------------------|
 **200** | Document deleted |  -  |
 **404** | CouchDB error |  -  |
+**401** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
+**409** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **get_document**
-> Document get_document(db, docid, rev=rev, revs_info=revs_info, conflicts=conflicts)
+> Document get_document(db, docid, rev=rev, revs_info=revs_info, conflicts=conflicts, revs=revs, latest=latest)
 
 Get a document
 
@@ -239,15 +244,17 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 with couchdb_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = couchdb_client.DocumentsApi(api_client)
-    db = 'db_example' # str | Database name
+    db = 'db_example' # str | Database name. System databases (`_users`, `_replicator`, ...) start with `_`.
     docid = 'docid_example' # str | 
     rev = 'rev_example' # str |  (optional)
     revs_info = False # bool |  (optional) (default to False)
     conflicts = False # bool |  (optional) (default to False)
+    revs = False # bool | Include the revision history as `_revisions` (optional) (default to False)
+    latest = False # bool | With `rev`, return the latest leaf revision on that branch (optional) (default to False)
 
     try:
         # Get a document
-        api_response = api_instance.get_document(db, docid, rev=rev, revs_info=revs_info, conflicts=conflicts)
+        api_response = api_instance.get_document(db, docid, rev=rev, revs_info=revs_info, conflicts=conflicts, revs=revs, latest=latest)
         print("The response of DocumentsApi->get_document:\n")
         pprint(api_response)
     except Exception as e:
@@ -261,11 +268,13 @@ with couchdb_client.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **db** | **str**| Database name | 
+ **db** | **str**| Database name. System databases (&#x60;_users&#x60;, &#x60;_replicator&#x60;, ...) start with &#x60;_&#x60;. | 
  **docid** | **str**|  | 
  **rev** | **str**|  | [optional] 
  **revs_info** | **bool**|  | [optional] [default to False]
  **conflicts** | **bool**|  | [optional] [default to False]
+ **revs** | **bool**| Include the revision history as &#x60;_revisions&#x60; | [optional] [default to False]
+ **latest** | **bool**| With &#x60;rev&#x60;, return the latest leaf revision on that branch | [optional] [default to False]
 
 ### Return type
 
@@ -286,6 +295,9 @@ Name | Type | Description  | Notes
 |-------------|-------------|------------------|
 **200** | The document |  -  |
 **404** | CouchDB error |  -  |
+**400** | CouchDB error |  -  |
+**401** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -332,7 +344,7 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 with couchdb_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = couchdb_client.DocumentsApi(api_client)
-    db = 'db_example' # str | Database name
+    db = 'db_example' # str | Database name. System databases (`_users`, `_replicator`, ...) start with `_`.
     docid = 'docid_example' # str | 
 
     try:
@@ -351,7 +363,7 @@ with couchdb_client.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **db** | **str**| Database name | 
+ **db** | **str**| Database name. System databases (&#x60;_users&#x60;, &#x60;_replicator&#x60;, ...) start with &#x60;_&#x60;. | 
  **docid** | **str**|  | 
 
 ### Return type
@@ -373,6 +385,8 @@ Name | Type | Description  | Notes
 |-------------|-------------|------------------|
 **200** | The document |  -  |
 **404** | CouchDB error |  -  |
+**401** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -420,7 +434,7 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 with couchdb_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = couchdb_client.DocumentsApi(api_client)
-    db = 'db_example' # str | Database name
+    db = 'db_example' # str | Database name. System databases (`_users`, `_replicator`, ...) start with `_`.
     bulk_docs = couchdb_client.BulkDocs() # BulkDocs | 
 
     try:
@@ -439,7 +453,7 @@ with couchdb_client.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **db** | **str**| Database name | 
+ **db** | **str**| Database name. System databases (&#x60;_users&#x60;, &#x60;_replicator&#x60;, ...) start with &#x60;_&#x60;. | 
  **bulk_docs** | [**BulkDocs**](BulkDocs.md)|  | 
 
 ### Return type
@@ -461,6 +475,9 @@ Name | Type | Description  | Notes
 |-------------|-------------|------------------|
 **201** | Per-document results |  -  |
 **401** | CouchDB error |  -  |
+**400** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
+**417** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -508,7 +525,7 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 with couchdb_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = couchdb_client.DocumentsApi(api_client)
-    db = 'db_example' # str | Database name
+    db = 'db_example' # str | Database name. System databases (`_users`, `_replicator`, ...) start with `_`.
     document = couchdb_client.Document() # Document | 
 
     try:
@@ -527,7 +544,7 @@ with couchdb_client.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **db** | **str**| Database name | 
+ **db** | **str**| Database name. System databases (&#x60;_users&#x60;, &#x60;_replicator&#x60;, ...) start with &#x60;_&#x60;. | 
  **document** | [**Document**](Document.md)|  | 
 
 ### Return type
@@ -550,6 +567,9 @@ Name | Type | Description  | Notes
 **201** | Document created |  -  |
 **202** | Document accepted |  -  |
 **409** | CouchDB error |  -  |
+**400** | CouchDB error |  -  |
+**401** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -597,7 +617,7 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 with couchdb_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = couchdb_client.DocumentsApi(api_client)
-    db = 'db_example' # str | Database name
+    db = 'db_example' # str | Database name. System databases (`_users`, `_replicator`, ...) start with `_`.
     docid = 'docid_example' # str | 
     document = couchdb_client.Document() # Document | 
     if_match = 'if_match_example' # str | Document revision (alternative to `rev`) (optional)
@@ -619,7 +639,7 @@ with couchdb_client.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **db** | **str**| Database name | 
+ **db** | **str**| Database name. System databases (&#x60;_users&#x60;, &#x60;_replicator&#x60;, ...) start with &#x60;_&#x60;. | 
  **docid** | **str**|  | 
  **document** | [**Document**](Document.md)|  | 
  **if_match** | **str**| Document revision (alternative to &#x60;rev&#x60;) | [optional] 
@@ -645,6 +665,9 @@ Name | Type | Description  | Notes
 **201** | Document written |  -  |
 **202** | Document accepted |  -  |
 **409** | CouchDB error |  -  |
+**400** | CouchDB error |  -  |
+**401** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -692,7 +715,7 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 with couchdb_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = couchdb_client.DocumentsApi(api_client)
-    db = 'db_example' # str | Database name
+    db = 'db_example' # str | Database name. System databases (`_users`, `_replicator`, ...) start with `_`.
     docid = 'docid_example' # str | 
     document = couchdb_client.Document() # Document | 
 
@@ -712,7 +735,7 @@ with couchdb_client.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **db** | **str**| Database name | 
+ **db** | **str**| Database name. System databases (&#x60;_users&#x60;, &#x60;_replicator&#x60;, ...) start with &#x60;_&#x60;. | 
  **docid** | **str**|  | 
  **document** | [**Document**](Document.md)|  | 
 
@@ -735,6 +758,9 @@ Name | Type | Description  | Notes
 |-------------|-------------|------------------|
 **201** | Document written |  -  |
 **409** | CouchDB error |  -  |
+**400** | CouchDB error |  -  |
+**401** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

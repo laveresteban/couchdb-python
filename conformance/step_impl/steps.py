@@ -421,3 +421,90 @@ def replicate():
 @step("The replica has <count> documents")
 def replica_count(count):
     assert couch()[s["replica"]].info()["doc_count"] == int(count)
+
+
+# -- sync primitives -------------------------------------------------------
+@step("Revs diff for document <docid> with the remembered revision reports nothing missing")
+def revs_diff_nothing_missing(docid):
+    assert db().revs_diff({docid: [s["rev"]]}) == {}
+
+
+@step("Revs diff for document <docid> with revision <rev> reports <missing> missing")
+def revs_diff_missing(docid, rev, missing):
+    assert db().revs_diff({docid: [rev]})[docid]["missing"] == missing.split(",")
+
+
+@step("Bulk get documents <ids> with history returns <count> documents")
+def bulk_get_docs(ids, count):
+    res = db().bulk_get([{"id": i} for i in ids.split(",")], revs=True)
+    docs = [d["ok"] for r in res for d in r["docs"] if "ok" in d]
+    assert len(docs) == int(count), res
+    assert all("_revisions" in d for d in docs), docs
+
+
+@step("Bulk get history of document <docid> lists <count> revisions")
+def bulk_get_history(docid, count):
+    doc = db().bulk_get([{"id": docid}], revs=True)[0]["docs"][0]["ok"]
+    assert len(doc["_revisions"]["ids"]) == int(count), doc
+
+
+@step("Bulk get of missing document <docid> reports <error>")
+def bulk_get_missing(docid, error):
+    entry = db().bulk_get([{"id": docid}])[0]["docs"][0]
+    assert entry.get("error", {}).get("error") == error, entry
+
+
+@step("Save local document <docid> with field <field> = <value>")
+def save_local(docid, field, value):
+    db().put_local(docid, {field: value})
+
+
+@step("Local document <docid> has field <field> = <value>")
+def local_has_field(docid, field, value):
+    assert db().get_local(docid)[field] == value
+
+
+@step("The changes feed lists no documents")
+def changes_empty():
+    assert db().changes().results == []
+
+
+@step("Delete local document <docid>")
+def delete_local(docid):
+    db().delete_local(docid)
+
+
+@step("Local document <docid> does not exist")
+def local_missing(docid):
+    try:
+        db().get_local(docid)
+    except NotFound:
+        return
+    raise AssertionError(f"_local/{docid} still exists")
+
+
+@step("Write document <docid> at revision <rev> with field <field> = <value> without new edits")
+def write_without_new_edits(docid, rev, field, value):
+    db().bulk_save([{"_id": docid, "_rev": rev, field: value}], new_edits=False)
+
+
+@step("Document <docid> has <count> conflicts")
+def conflict_count(docid, count):
+    assert len(db().get(docid, conflicts=True).get("_conflicts", [])) == int(count)
+
+
+@step("The changes feed with all leaf revisions lists <count> revisions for document <docid>")
+def changes_all_leaves(count, docid):
+    rows = [r for r in db().changes(style="all_docs").results if r["id"] == docid]
+    assert rows and len(rows[-1]["changes"]) == int(count), rows
+
+
+@step("Document <docid> with revision history lists <count> revisions")
+def revision_history(docid, count):
+    assert len(db().get(docid, revs=True)["_revisions"]["ids"]) == int(count)
+
+
+@step("The changes feed filtered by field <field> = <value> lists documents <ids>")
+def changes_by_selector(field, value, ids):
+    got = [r["id"] for r in db().changes(selector={field: value}).results]
+    assert sorted(got) == sorted(ids.split(",")), got

@@ -53,7 +53,7 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 with couchdb_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = couchdb_client.QueryApi(api_client)
-    db = 'db_example' # str | Database name
+    db = 'db_example' # str | Database name. System databases (`_users`, `_replicator`, ...) start with `_`.
 
     try:
         # List Mango indexes
@@ -71,7 +71,7 @@ with couchdb_client.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **db** | **str**| Database name | 
+ **db** | **str**| Database name. System databases (&#x60;_users&#x60;, &#x60;_replicator&#x60;, ...) start with &#x60;_&#x60;. | 
 
 ### Return type
 
@@ -139,7 +139,7 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 with couchdb_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = couchdb_client.QueryApi(api_client)
-    db = 'db_example' # str | Database name
+    db = 'db_example' # str | Database name. System databases (`_users`, `_replicator`, ...) start with `_`.
     all_docs_query = couchdb_client.AllDocsQuery() # AllDocsQuery | 
 
     try:
@@ -158,7 +158,7 @@ with couchdb_client.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **db** | **str**| Database name | 
+ **db** | **str**| Database name. System databases (&#x60;_users&#x60;, &#x60;_replicator&#x60;, ...) start with &#x60;_&#x60;. | 
  **all_docs_query** | [**AllDocsQuery**](AllDocsQuery.md)|  | 
 
 ### Return type
@@ -180,6 +180,8 @@ Name | Type | Description  | Notes
 |-------------|-------------|------------------|
 **200** | Rows |  -  |
 **401** | CouchDB error |  -  |
+**400** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -227,7 +229,7 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 with couchdb_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = couchdb_client.QueryApi(api_client)
-    db = 'db_example' # str | Database name
+    db = 'db_example' # str | Database name. System databases (`_users`, `_replicator`, ...) start with `_`.
     find_query = couchdb_client.FindQuery() # FindQuery | 
 
     try:
@@ -246,7 +248,7 @@ with couchdb_client.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **db** | **str**| Database name | 
+ **db** | **str**| Database name. System databases (&#x60;_users&#x60;, &#x60;_replicator&#x60;, ...) start with &#x60;_&#x60;. | 
  **find_query** | [**FindQuery**](FindQuery.md)|  | 
 
 ### Return type
@@ -268,6 +270,8 @@ Name | Type | Description  | Notes
 |-------------|-------------|------------------|
 **200** | Matching documents |  -  |
 **400** | CouchDB error |  -  |
+**401** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -315,7 +319,7 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 with couchdb_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = couchdb_client.QueryApi(api_client)
-    db = 'db_example' # str | Database name
+    db = 'db_example' # str | Database name. System databases (`_users`, `_replicator`, ...) start with `_`.
     index_definition_request = couchdb_client.IndexDefinitionRequest() # IndexDefinitionRequest | 
 
     try:
@@ -334,7 +338,7 @@ with couchdb_client.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **db** | **str**| Database name | 
+ **db** | **str**| Database name. System databases (&#x60;_users&#x60;, &#x60;_replicator&#x60;, ...) start with &#x60;_&#x60;. | 
  **index_definition_request** | [**IndexDefinitionRequest**](IndexDefinitionRequest.md)|  | 
 
 ### Return type
@@ -356,6 +360,8 @@ Name | Type | Description  | Notes
 |-------------|-------------|------------------|
 **200** | Index created or already exists |  -  |
 **401** | CouchDB error |  -  |
+**400** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

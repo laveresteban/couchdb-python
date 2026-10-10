@@ -19,4 +19,14 @@ done
 gauge() { npx --yes @getgauge/cli@1.6.38 "$@"; }
 gauge install python >/dev/null 2>&1 || true
 gauge install html-report >/dev/null 2>&1 || true
-gauge run specs "$@"
+# Gauge passes a run whose scenarios were skipped for missing steps. Treat
+# that as a failure so a new spec can't go unimplemented unnoticed.
+log="$(mktemp)"
+trap 'rm -f "$log"' EXIT
+gauge run specs "$@" | tee "$log"
+status=${PIPESTATUS[0]}
+[[ $status -eq 0 ]] || exit "$status"
+if ! grep -Eq '^Scenarios:.*[^0-9]0 skipped' "$log"; then
+  echo "conformance: scenarios were skipped (unimplemented steps?)" >&2
+  exit 1
+fi
