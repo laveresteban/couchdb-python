@@ -10,6 +10,7 @@
 - Cookie sessions renew themselves and log in again once after expiry.
 - Only network errors, 429 and 5xx are retried (not bad URLs).
 - `CouchDB(replication_url=...)` for servers that see themselves under a different host.
+- Continuous `follow()` saves its checkpoint when stopped.
 - Conformance fails when any scenario is skipped.
 
 ## 0.4.0 (unreleased)

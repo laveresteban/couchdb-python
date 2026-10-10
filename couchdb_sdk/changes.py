@@ -194,7 +194,7 @@ class ChangesFeed:
                 try:
                     for line in self._lines(resp):
                         if self._stopped:
-                            return
+                            break
                         if not line:  # blank line is a heartbeat
                             continue
                         row = json.loads(line)
@@ -205,6 +205,8 @@ class ChangesFeed:
                         if row.get("seq") is not None:  # null with seq_interval
                             self.since = row["seq"]
                         pending += 1
+                        if self._stopped:  # save our position below, then end
+                            break
                         if self.checkpoint and pending >= self.batch_size:
                             self._save_checkpoint()
                             pending = 0
