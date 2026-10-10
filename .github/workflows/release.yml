@@ -13,4 +13,13 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - run: pip install build && python -m build
+      # The wheel's version comes from setup.py, which generate.sh stamps
+      # with the spec version.
+      - name: Tag, package version and spec version agree
+        run: |
+          ver="${GITHUB_REF_NAME#v}"
+          spec=$(sed -n 's/^spec_version=//p' .generated-from)
+          ls dist
+          [ "$ver" = "$spec" ] || { echo "::error::tag $GITHUB_REF_NAME but spec_version $spec"; exit 1; }
+          ls "dist/couchdb_sdk-$ver-"*.whl >/dev/null || { echo "::error::no couchdb_sdk $ver wheel"; exit 1; }
       - uses: pypa/gh-action-pypi-publish@release/v1
