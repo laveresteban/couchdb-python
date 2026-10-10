@@ -8,6 +8,7 @@ Method | HTTP request | Description
 [**delete_local_document**](DocumentsApi.md#delete_local_document) | **DELETE** /{db}/_local/{docid} | Delete a local document
 [**get_document**](DocumentsApi.md#get_document) | **GET** /{db}/{docid} | Get a document
 [**get_local_document**](DocumentsApi.md#get_local_document) | **GET** /{db}/_local/{docid} | Get a local (non-replicated) document
+[**head_document**](DocumentsApi.md#head_document) | **HEAD** /{db}/{docid} | Check that a document exists and get its current revision
 [**post_bulk_docs**](DocumentsApi.md#post_bulk_docs) | **POST** /{db}/_bulk_docs | Create, update or delete documents in bulk
 [**post_document**](DocumentsApi.md#post_document) | **POST** /{db} | Create a document with a server-generated id
 [**put_document**](DocumentsApi.md#put_document) | **PUT** /{db}/{docid} | Create or update a document
@@ -23,6 +24,7 @@ Delete a document
 
 * Basic Authentication (basicAuth):
 * Api Key Authentication (cookieAuth):
+* Bearer (JWT) Authentication (bearerAuth):
 
 ```python
 import couchdb_client
@@ -52,6 +54,11 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 
 # Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
 # configuration.api_key_prefix['cookieAuth'] = 'Bearer'
+
+# Configure Bearer authorization (JWT): bearerAuth
+configuration = couchdb_client.Configuration(
+    access_token = os.environ["BEARER_TOKEN"]
+)
 
 # Enter a context with an instance of the API client
 with couchdb_client.ApiClient(configuration) as api_client:
@@ -89,7 +96,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth)
+[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth), [bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -118,6 +125,7 @@ Delete a local document
 
 * Basic Authentication (basicAuth):
 * Api Key Authentication (cookieAuth):
+* Bearer (JWT) Authentication (bearerAuth):
 
 ```python
 import couchdb_client
@@ -147,6 +155,11 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 
 # Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
 # configuration.api_key_prefix['cookieAuth'] = 'Bearer'
+
+# Configure Bearer authorization (JWT): bearerAuth
+configuration = couchdb_client.Configuration(
+    access_token = os.environ["BEARER_TOKEN"]
+)
 
 # Enter a context with an instance of the API client
 with couchdb_client.ApiClient(configuration) as api_client:
@@ -182,7 +195,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth)
+[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth), [bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -202,7 +215,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **get_document**
-> Document get_document(db, docid, rev=rev, revs_info=revs_info, conflicts=conflicts, revs=revs, latest=latest)
+> Document get_document(db, docid, rev=rev, revs_info=revs_info, conflicts=conflicts, revs=revs, latest=latest, if_none_match=if_none_match)
 
 Get a document
 
@@ -210,6 +223,7 @@ Get a document
 
 * Basic Authentication (basicAuth):
 * Api Key Authentication (cookieAuth):
+* Bearer (JWT) Authentication (bearerAuth):
 
 ```python
 import couchdb_client
@@ -240,6 +254,11 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 # Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
 # configuration.api_key_prefix['cookieAuth'] = 'Bearer'
 
+# Configure Bearer authorization (JWT): bearerAuth
+configuration = couchdb_client.Configuration(
+    access_token = os.environ["BEARER_TOKEN"]
+)
+
 # Enter a context with an instance of the API client
 with couchdb_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
@@ -251,10 +270,11 @@ with couchdb_client.ApiClient(configuration) as api_client:
     conflicts = False # bool |  (optional) (default to False)
     revs = False # bool | Include the revision history as `_revisions` (optional) (default to False)
     latest = False # bool | With `rev`, return the latest leaf revision on that branch (optional) (default to False)
+    if_none_match = 'if_none_match_example' # str | An `ETag` from an earlier response; the server answers 304 if it still matches. (optional)
 
     try:
         # Get a document
-        api_response = api_instance.get_document(db, docid, rev=rev, revs_info=revs_info, conflicts=conflicts, revs=revs, latest=latest)
+        api_response = api_instance.get_document(db, docid, rev=rev, revs_info=revs_info, conflicts=conflicts, revs=revs, latest=latest, if_none_match=if_none_match)
         print("The response of DocumentsApi->get_document:\n")
         pprint(api_response)
     except Exception as e:
@@ -275,6 +295,7 @@ Name | Type | Description  | Notes
  **conflicts** | **bool**|  | [optional] [default to False]
  **revs** | **bool**| Include the revision history as &#x60;_revisions&#x60; | [optional] [default to False]
  **latest** | **bool**| With &#x60;rev&#x60;, return the latest leaf revision on that branch | [optional] [default to False]
+ **if_none_match** | **str**| An &#x60;ETag&#x60; from an earlier response; the server answers 304 if it still matches. | [optional] 
 
 ### Return type
 
@@ -282,7 +303,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth)
+[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth), [bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -293,7 +314,8 @@ Name | Type | Description  | Notes
 
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**200** | The document |  -  |
+**200** | The document |  * ETag -  <br>  |
+**304** | Not modified since the &#x60;If-None-Match&#x60; ETag |  -  |
 **404** | CouchDB error |  -  |
 **400** | CouchDB error |  -  |
 **401** | CouchDB error |  -  |
@@ -310,6 +332,7 @@ Get a local (non-replicated) document
 
 * Basic Authentication (basicAuth):
 * Api Key Authentication (cookieAuth):
+* Bearer (JWT) Authentication (bearerAuth):
 
 ```python
 import couchdb_client
@@ -339,6 +362,11 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 
 # Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
 # configuration.api_key_prefix['cookieAuth'] = 'Bearer'
+
+# Configure Bearer authorization (JWT): bearerAuth
+configuration = couchdb_client.Configuration(
+    access_token = os.environ["BEARER_TOKEN"]
+)
 
 # Enter a context with an instance of the API client
 with couchdb_client.ApiClient(configuration) as api_client:
@@ -372,7 +400,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth)
+[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth), [bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -390,6 +418,103 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **head_document**
+> head_document(db, docid, if_none_match=if_none_match)
+
+Check that a document exists and get its current revision
+
+The `ETag` header holds the winning revision, quoted.
+
+### Example
+
+* Basic Authentication (basicAuth):
+* Api Key Authentication (cookieAuth):
+* Bearer (JWT) Authentication (bearerAuth):
+
+```python
+import couchdb_client
+from couchdb_client.rest import ApiException
+from pprint import pprint
+
+# Defining the host is optional and defaults to http://localhost:5984
+# See configuration.py for a list of all supported configuration parameters.
+configuration = couchdb_client.Configuration(
+    host = "http://localhost:5984"
+)
+
+# The client must configure the authentication and authorization parameters
+# in accordance with the API server security policy.
+# Examples for each auth method are provided below, use the example that
+# satisfies your auth use case.
+
+# Configure HTTP basic authorization: basicAuth
+configuration = couchdb_client.Configuration(
+    username = os.environ["USERNAME"],
+    password = os.environ["PASSWORD"]
+)
+
+# Configure API key authorization: cookieAuth
+configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
+
+# Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+# configuration.api_key_prefix['cookieAuth'] = 'Bearer'
+
+# Configure Bearer authorization (JWT): bearerAuth
+configuration = couchdb_client.Configuration(
+    access_token = os.environ["BEARER_TOKEN"]
+)
+
+# Enter a context with an instance of the API client
+with couchdb_client.ApiClient(configuration) as api_client:
+    # Create an instance of the API class
+    api_instance = couchdb_client.DocumentsApi(api_client)
+    db = 'db_example' # str | Database name. System databases (`_users`, `_replicator`, ...) start with `_`.
+    docid = 'docid_example' # str | 
+    if_none_match = 'if_none_match_example' # str | An `ETag` from an earlier response; the server answers 304 if it still matches. (optional)
+
+    try:
+        # Check that a document exists and get its current revision
+        api_instance.head_document(db, docid, if_none_match=if_none_match)
+    except Exception as e:
+        print("Exception when calling DocumentsApi->head_document: %s\n" % e)
+```
+
+
+
+### Parameters
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **db** | **str**| Database name. System databases (&#x60;_users&#x60;, &#x60;_replicator&#x60;, ...) start with &#x60;_&#x60;. | 
+ **docid** | **str**|  | 
+ **if_none_match** | **str**| An &#x60;ETag&#x60; from an earlier response; the server answers 304 if it still matches. | [optional] 
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: Not defined
+
+### HTTP response details
+
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+**200** | Document exists |  * ETag -  <br>  |
+**304** | Not modified since the &#x60;If-None-Match&#x60; ETag |  -  |
+**401** | Authentication required |  -  |
+**403** | Not allowed |  -  |
+**404** | Document does not exist |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **post_bulk_docs**
 > List[DocumentResult] post_bulk_docs(db, bulk_docs)
 
@@ -399,6 +524,7 @@ Create, update or delete documents in bulk
 
 * Basic Authentication (basicAuth):
 * Api Key Authentication (cookieAuth):
+* Bearer (JWT) Authentication (bearerAuth):
 
 ```python
 import couchdb_client
@@ -429,6 +555,11 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 
 # Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
 # configuration.api_key_prefix['cookieAuth'] = 'Bearer'
+
+# Configure Bearer authorization (JWT): bearerAuth
+configuration = couchdb_client.Configuration(
+    access_token = os.environ["BEARER_TOKEN"]
+)
 
 # Enter a context with an instance of the API client
 with couchdb_client.ApiClient(configuration) as api_client:
@@ -462,7 +593,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth)
+[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth), [bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -490,6 +621,7 @@ Create a document with a server-generated id
 
 * Basic Authentication (basicAuth):
 * Api Key Authentication (cookieAuth):
+* Bearer (JWT) Authentication (bearerAuth):
 
 ```python
 import couchdb_client
@@ -520,6 +652,11 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 
 # Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
 # configuration.api_key_prefix['cookieAuth'] = 'Bearer'
+
+# Configure Bearer authorization (JWT): bearerAuth
+configuration = couchdb_client.Configuration(
+    access_token = os.environ["BEARER_TOKEN"]
+)
 
 # Enter a context with an instance of the API client
 with couchdb_client.ApiClient(configuration) as api_client:
@@ -553,7 +690,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth)
+[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth), [bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -582,6 +719,7 @@ Create or update a document
 
 * Basic Authentication (basicAuth):
 * Api Key Authentication (cookieAuth):
+* Bearer (JWT) Authentication (bearerAuth):
 
 ```python
 import couchdb_client
@@ -612,6 +750,11 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 
 # Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
 # configuration.api_key_prefix['cookieAuth'] = 'Bearer'
+
+# Configure Bearer authorization (JWT): bearerAuth
+configuration = couchdb_client.Configuration(
+    access_token = os.environ["BEARER_TOKEN"]
+)
 
 # Enter a context with an instance of the API client
 with couchdb_client.ApiClient(configuration) as api_client:
@@ -651,7 +794,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth)
+[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth), [bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -680,6 +823,7 @@ Create or update a local document
 
 * Basic Authentication (basicAuth):
 * Api Key Authentication (cookieAuth):
+* Bearer (JWT) Authentication (bearerAuth):
 
 ```python
 import couchdb_client
@@ -710,6 +854,11 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 
 # Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
 # configuration.api_key_prefix['cookieAuth'] = 'Bearer'
+
+# Configure Bearer authorization (JWT): bearerAuth
+configuration = couchdb_client.Configuration(
+    access_token = os.environ["BEARER_TOKEN"]
+)
 
 # Enter a context with an instance of the API client
 with couchdb_client.ApiClient(configuration) as api_client:
@@ -745,7 +894,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth)
+[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth), [bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 

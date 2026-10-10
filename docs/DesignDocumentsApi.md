@@ -6,6 +6,7 @@ Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**delete_design_document**](DesignDocumentsApi.md#delete_design_document) | **DELETE** /{db}/_design/{ddoc} | Delete a design document
 [**get_design_document**](DesignDocumentsApi.md#get_design_document) | **GET** /{db}/_design/{ddoc} | Get a design document
+[**get_view**](DesignDocumentsApi.md#get_view) | **GET** /{db}/_design/{ddoc}/_view/{view} | Query a MapReduce view (keys in the query string)
 [**post_view**](DesignDocumentsApi.md#post_view) | **POST** /{db}/_design/{ddoc}/_view/{view} | Query a MapReduce view
 [**put_design_document**](DesignDocumentsApi.md#put_design_document) | **PUT** /{db}/_design/{ddoc} | Create or update a design document
 
@@ -19,6 +20,7 @@ Delete a design document
 
 * Basic Authentication (basicAuth):
 * Api Key Authentication (cookieAuth):
+* Bearer (JWT) Authentication (bearerAuth):
 
 ```python
 import couchdb_client
@@ -48,6 +50,11 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 
 # Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
 # configuration.api_key_prefix['cookieAuth'] = 'Bearer'
+
+# Configure Bearer authorization (JWT): bearerAuth
+configuration = couchdb_client.Configuration(
+    access_token = os.environ["BEARER_TOKEN"]
+)
 
 # Enter a context with an instance of the API client
 with couchdb_client.ApiClient(configuration) as api_client:
@@ -83,7 +90,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth)
+[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth), [bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -111,6 +118,7 @@ Get a design document
 
 * Basic Authentication (basicAuth):
 * Api Key Authentication (cookieAuth):
+* Bearer (JWT) Authentication (bearerAuth):
 
 ```python
 import couchdb_client
@@ -140,6 +148,11 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 
 # Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
 # configuration.api_key_prefix['cookieAuth'] = 'Bearer'
+
+# Configure Bearer authorization (JWT): bearerAuth
+configuration = couchdb_client.Configuration(
+    access_token = os.environ["BEARER_TOKEN"]
+)
 
 # Enter a context with an instance of the API client
 with couchdb_client.ApiClient(configuration) as api_client:
@@ -173,7 +186,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth)
+[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth), [bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -191,6 +204,134 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **get_view**
+> ViewResult get_view(db, ddoc, view, include_docs=include_docs, key=key, keys=keys, start_key=start_key, end_key=end_key, inclusive_end=inclusive_end, limit=limit, skip=skip, descending=descending, reduce=reduce, group=group, group_level=group_level, update=update, stable=stable, update_seq=update_seq)
+
+Query a MapReduce view (keys in the query string)
+
+### Example
+
+* Basic Authentication (basicAuth):
+* Api Key Authentication (cookieAuth):
+* Bearer (JWT) Authentication (bearerAuth):
+
+```python
+import couchdb_client
+from couchdb_client.models.view_result import ViewResult
+from couchdb_client.rest import ApiException
+from pprint import pprint
+
+# Defining the host is optional and defaults to http://localhost:5984
+# See configuration.py for a list of all supported configuration parameters.
+configuration = couchdb_client.Configuration(
+    host = "http://localhost:5984"
+)
+
+# The client must configure the authentication and authorization parameters
+# in accordance with the API server security policy.
+# Examples for each auth method are provided below, use the example that
+# satisfies your auth use case.
+
+# Configure HTTP basic authorization: basicAuth
+configuration = couchdb_client.Configuration(
+    username = os.environ["USERNAME"],
+    password = os.environ["PASSWORD"]
+)
+
+# Configure API key authorization: cookieAuth
+configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
+
+# Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+# configuration.api_key_prefix['cookieAuth'] = 'Bearer'
+
+# Configure Bearer authorization (JWT): bearerAuth
+configuration = couchdb_client.Configuration(
+    access_token = os.environ["BEARER_TOKEN"]
+)
+
+# Enter a context with an instance of the API client
+with couchdb_client.ApiClient(configuration) as api_client:
+    # Create an instance of the API class
+    api_instance = couchdb_client.DesignDocumentsApi(api_client)
+    db = 'db_example' # str | Database name. System databases (`_users`, `_replicator`, ...) start with `_`.
+    ddoc = 'ddoc_example' # str | Design document name without the `_design/` prefix
+    view = 'view_example' # str | 
+    include_docs = False # bool |  (optional) (default to False)
+    key = 'key_example' # str | JSON-encoded key, e.g. `\"abc\"` (with quotes) or `[1,2]`. (optional)
+    keys = 'keys_example' # str | JSON-encoded array of keys. (optional)
+    start_key = 'start_key_example' # str | JSON-encoded key to start at. (optional)
+    end_key = 'end_key_example' # str | JSON-encoded key to end at. (optional)
+    inclusive_end = True # bool |  (optional) (default to True)
+    limit = 56 # int |  (optional)
+    skip = 0 # int |  (optional) (default to 0)
+    descending = False # bool |  (optional) (default to False)
+    reduce = True # bool |  (optional)
+    group = True # bool |  (optional)
+    group_level = 56 # int |  (optional)
+    update = 'update_example' # str |  (optional)
+    stable = True # bool |  (optional)
+    update_seq = True # bool |  (optional)
+
+    try:
+        # Query a MapReduce view (keys in the query string)
+        api_response = api_instance.get_view(db, ddoc, view, include_docs=include_docs, key=key, keys=keys, start_key=start_key, end_key=end_key, inclusive_end=inclusive_end, limit=limit, skip=skip, descending=descending, reduce=reduce, group=group, group_level=group_level, update=update, stable=stable, update_seq=update_seq)
+        print("The response of DesignDocumentsApi->get_view:\n")
+        pprint(api_response)
+    except Exception as e:
+        print("Exception when calling DesignDocumentsApi->get_view: %s\n" % e)
+```
+
+
+
+### Parameters
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **db** | **str**| Database name. System databases (&#x60;_users&#x60;, &#x60;_replicator&#x60;, ...) start with &#x60;_&#x60;. | 
+ **ddoc** | **str**| Design document name without the &#x60;_design/&#x60; prefix | 
+ **view** | **str**|  | 
+ **include_docs** | **bool**|  | [optional] [default to False]
+ **key** | **str**| JSON-encoded key, e.g. &#x60;\&quot;abc\&quot;&#x60; (with quotes) or &#x60;[1,2]&#x60;. | [optional] 
+ **keys** | **str**| JSON-encoded array of keys. | [optional] 
+ **start_key** | **str**| JSON-encoded key to start at. | [optional] 
+ **end_key** | **str**| JSON-encoded key to end at. | [optional] 
+ **inclusive_end** | **bool**|  | [optional] [default to True]
+ **limit** | **int**|  | [optional] 
+ **skip** | **int**|  | [optional] [default to 0]
+ **descending** | **bool**|  | [optional] [default to False]
+ **reduce** | **bool**|  | [optional] 
+ **group** | **bool**|  | [optional] 
+ **group_level** | **int**|  | [optional] 
+ **update** | **str**|  | [optional] 
+ **stable** | **bool**|  | [optional] 
+ **update_seq** | **bool**|  | [optional] 
+
+### Return type
+
+[**ViewResult**](ViewResult.md)
+
+### Authorization
+
+[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth), [bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+### HTTP response details
+
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+**200** | View rows |  -  |
+**400** | CouchDB error |  -  |
+**401** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
+**404** | CouchDB error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **post_view**
 > ViewResult post_view(db, ddoc, view, view_query)
 
@@ -200,6 +341,7 @@ Query a MapReduce view
 
 * Basic Authentication (basicAuth):
 * Api Key Authentication (cookieAuth):
+* Bearer (JWT) Authentication (bearerAuth):
 
 ```python
 import couchdb_client
@@ -230,6 +372,11 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 
 # Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
 # configuration.api_key_prefix['cookieAuth'] = 'Bearer'
+
+# Configure Bearer authorization (JWT): bearerAuth
+configuration = couchdb_client.Configuration(
+    access_token = os.environ["BEARER_TOKEN"]
+)
 
 # Enter a context with an instance of the API client
 with couchdb_client.ApiClient(configuration) as api_client:
@@ -267,7 +414,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth)
+[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth), [bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 
@@ -295,6 +442,7 @@ Create or update a design document
 
 * Basic Authentication (basicAuth):
 * Api Key Authentication (cookieAuth):
+* Bearer (JWT) Authentication (bearerAuth):
 
 ```python
 import couchdb_client
@@ -325,6 +473,11 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 
 # Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
 # configuration.api_key_prefix['cookieAuth'] = 'Bearer'
+
+# Configure Bearer authorization (JWT): bearerAuth
+configuration = couchdb_client.Configuration(
+    access_token = os.environ["BEARER_TOKEN"]
+)
 
 # Enter a context with an instance of the API client
 with couchdb_client.ApiClient(configuration) as api_client:
@@ -360,7 +513,7 @@ Name | Type | Description  | Notes
 
 ### Authorization
 
-[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth)
+[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth), [bearerAuth](../README.md#bearerAuth)
 
 ### HTTP request headers
 

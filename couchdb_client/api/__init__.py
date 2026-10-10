@@ -7,6 +7,7 @@ from couchdb_client.api.changes_api import ChangesApi
 from couchdb_client.api.databases_api import DatabasesApi
 from couchdb_client.api.design_documents_api import DesignDocumentsApi
 from couchdb_client.api.documents_api import DocumentsApi
+from couchdb_client.api.maintenance_api import MaintenanceApi
 from couchdb_client.api.partitions_api import PartitionsApi
 from couchdb_client.api.query_api import QueryApi
 from couchdb_client.api.replication_api import ReplicationApi
