@@ -5,7 +5,9 @@ All URIs are relative to *http://localhost:5984*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**delete_design_document**](DesignDocumentsApi.md#delete_design_document) | **DELETE** /{db}/_design/{ddoc} | Delete a design document
+[**get_design_docs**](DesignDocumentsApi.md#get_design_docs) | **GET** /{db}/_design_docs | List design documents
 [**get_design_document**](DesignDocumentsApi.md#get_design_document) | **GET** /{db}/_design/{ddoc} | Get a design document
+[**post_compact_design**](DesignDocumentsApi.md#post_compact_design) | **POST** /{db}/_compact/{ddoc} | Compact the view index of one design document
 [**post_view**](DesignDocumentsApi.md#post_view) | **POST** /{db}/_design/{ddoc}/_view/{view} | Query a MapReduce view
 [**put_design_document**](DesignDocumentsApi.md#put_design_document) | **PUT** /{db}/_design/{ddoc} | Create or update a design document
 
@@ -94,8 +96,111 @@ Name | Type | Description  | Notes
 
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**200** | Deleted |  -  |
+**200** | Deleted |  * X-Couch-Request-ID -  <br>  |
 **404** | CouchDB error |  -  |
+**401** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
+**400** | CouchDB error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **get_design_docs**
+> AllDocsResult get_design_docs(db, include_docs=include_docs, descending=descending, limit=limit, skip=skip, key=key, startkey=startkey, endkey=endkey)
+
+List design documents
+
+### Example
+
+* Basic Authentication (basicAuth):
+* Api Key Authentication (cookieAuth):
+
+```python
+import couchdb_client
+from couchdb_client.models.all_docs_result import AllDocsResult
+from couchdb_client.rest import ApiException
+from pprint import pprint
+
+# Defining the host is optional and defaults to http://localhost:5984
+# See configuration.py for a list of all supported configuration parameters.
+configuration = couchdb_client.Configuration(
+    host = "http://localhost:5984"
+)
+
+# The client must configure the authentication and authorization parameters
+# in accordance with the API server security policy.
+# Examples for each auth method are provided below, use the example that
+# satisfies your auth use case.
+
+# Configure HTTP basic authorization: basicAuth
+configuration = couchdb_client.Configuration(
+    username = os.environ["USERNAME"],
+    password = os.environ["PASSWORD"]
+)
+
+# Configure API key authorization: cookieAuth
+configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
+
+# Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+# configuration.api_key_prefix['cookieAuth'] = 'Bearer'
+
+# Enter a context with an instance of the API client
+with couchdb_client.ApiClient(configuration) as api_client:
+    # Create an instance of the API class
+    api_instance = couchdb_client.DesignDocumentsApi(api_client)
+    db = 'db_example' # str | Database name
+    include_docs = False # bool |  (optional) (default to False)
+    descending = False # bool |  (optional) (default to False)
+    limit = 56 # int |  (optional)
+    skip = 0 # int |  (optional) (default to 0)
+    key = 'key_example' # str | JSON-encoded key to match exactly (optional)
+    startkey = 'startkey_example' # str | JSON-encoded first key (optional)
+    endkey = 'endkey_example' # str | JSON-encoded last key (optional)
+
+    try:
+        # List design documents
+        api_response = api_instance.get_design_docs(db, include_docs=include_docs, descending=descending, limit=limit, skip=skip, key=key, startkey=startkey, endkey=endkey)
+        print("The response of DesignDocumentsApi->get_design_docs:\n")
+        pprint(api_response)
+    except Exception as e:
+        print("Exception when calling DesignDocumentsApi->get_design_docs: %s\n" % e)
+```
+
+
+
+### Parameters
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **db** | **str**| Database name | 
+ **include_docs** | **bool**|  | [optional] [default to False]
+ **descending** | **bool**|  | [optional] [default to False]
+ **limit** | **int**|  | [optional] 
+ **skip** | **int**|  | [optional] [default to 0]
+ **key** | **str**| JSON-encoded key to match exactly | [optional] 
+ **startkey** | **str**| JSON-encoded first key | [optional] 
+ **endkey** | **str**| JSON-encoded last key | [optional] 
+
+### Return type
+
+[**AllDocsResult**](AllDocsResult.md)
+
+### Authorization
+
+[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+### HTTP response details
+
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+**200** | Design document rows |  * X-Couch-Request-ID -  <br>  |
+**401** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -181,8 +286,100 @@ Name | Type | Description  | Notes
 
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**200** | The design document |  -  |
+**200** | The design document |  * X-Couch-Request-ID -  <br>  |
 **404** | CouchDB error |  -  |
+**401** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **post_compact_design**
+> Ok post_compact_design(db, ddoc, body)
+
+Compact the view index of one design document
+
+### Example
+
+* Basic Authentication (basicAuth):
+* Api Key Authentication (cookieAuth):
+
+```python
+import couchdb_client
+from couchdb_client.models.ok import Ok
+from couchdb_client.rest import ApiException
+from pprint import pprint
+
+# Defining the host is optional and defaults to http://localhost:5984
+# See configuration.py for a list of all supported configuration parameters.
+configuration = couchdb_client.Configuration(
+    host = "http://localhost:5984"
+)
+
+# The client must configure the authentication and authorization parameters
+# in accordance with the API server security policy.
+# Examples for each auth method are provided below, use the example that
+# satisfies your auth use case.
+
+# Configure HTTP basic authorization: basicAuth
+configuration = couchdb_client.Configuration(
+    username = os.environ["USERNAME"],
+    password = os.environ["PASSWORD"]
+)
+
+# Configure API key authorization: cookieAuth
+configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
+
+# Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+# configuration.api_key_prefix['cookieAuth'] = 'Bearer'
+
+# Enter a context with an instance of the API client
+with couchdb_client.ApiClient(configuration) as api_client:
+    # Create an instance of the API class
+    api_instance = couchdb_client.DesignDocumentsApi(api_client)
+    db = 'db_example' # str | Database name
+    ddoc = 'ddoc_example' # str | Design document name without the `_design/` prefix
+    body = None # object | Must be a JSON body; CouchDB ignores its content
+
+    try:
+        # Compact the view index of one design document
+        api_response = api_instance.post_compact_design(db, ddoc, body)
+        print("The response of DesignDocumentsApi->post_compact_design:\n")
+        pprint(api_response)
+    except Exception as e:
+        print("Exception when calling DesignDocumentsApi->post_compact_design: %s\n" % e)
+```
+
+
+
+### Parameters
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **db** | **str**| Database name | 
+ **ddoc** | **str**| Design document name without the &#x60;_design/&#x60; prefix | 
+ **body** | **object**| Must be a JSON body; CouchDB ignores its content | 
+
+### Return type
+
+[**Ok**](Ok.md)
+
+### Authorization
+
+[basicAuth](../README.md#basicAuth), [cookieAuth](../README.md#cookieAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+### HTTP response details
+
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+**202** | Compaction started |  * X-Couch-Request-ID -  <br>  |
+**401** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -273,8 +470,11 @@ Name | Type | Description  | Notes
 
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**200** | View rows |  -  |
+**200** | View rows |  * X-Couch-Request-ID -  <br>  |
 **404** | CouchDB error |  -  |
+**401** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
+**400** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -363,8 +563,11 @@ Name | Type | Description  | Notes
 
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**201** | Written |  -  |
+**201** | Written |  * X-Couch-Request-ID -  <br>  |
 **409** | CouchDB error |  -  |
+**401** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
+**400** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

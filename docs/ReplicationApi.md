@@ -88,9 +88,12 @@ Name | Type | Description  | Notes
 
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**200** | Replication finished |  -  |
-**202** | Continuous replication started |  -  |
+**200** | Replication finished |  * X-Couch-Request-ID -  <br>  |
+**202** | Continuous replication started |  * X-Couch-Request-ID -  <br>  |
 **404** | CouchDB error |  -  |
+**401** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
+**400** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

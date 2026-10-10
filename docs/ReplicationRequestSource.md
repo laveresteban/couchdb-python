@@ -1,12 +1,14 @@
 # ReplicationRequestSource
 
-Database URL, or an object with url and auth
+Database URL, or an endpoint object with url and auth
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **url** | **str** |  | [optional] 
+**auth** | **Dict[str, object]** |  | [optional] 
+**headers** | **Dict[str, str]** |  | [optional] 
 
 ## Example
 
