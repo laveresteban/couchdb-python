@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import contextlib
 import json
-from typing import Iterator
+from typing import Any, Iterator
 
 from couchdb_client.exceptions import ApiException
 
@@ -14,6 +14,7 @@ class CouchDBError(Exception):
         self.status = status
         self.error = error
         self.reason = reason
+        self.headers: Any = {}
 
 
 class Unauthorized(CouchDBError):
@@ -54,7 +55,9 @@ def from_api_exception(exc: ApiException) -> CouchDBError:
         error, reason = body.get("error", error), body.get("reason", reason)
     except (TypeError, ValueError, AttributeError):
         pass
-    return _BY_STATUS.get(status, CouchDBError)(status, error, reason)
+    err = _BY_STATUS.get(status, CouchDBError)(status, error, reason)
+    err.headers = exc.headers or {}
+    return err
 
 
 @contextlib.contextmanager

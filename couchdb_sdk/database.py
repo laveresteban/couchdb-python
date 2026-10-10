@@ -6,6 +6,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 import couchdb_client as gen
 
+from .changes import ChangesFeed
 from .errors import Conflict, NotFound, translate
 
 Doc = Dict[str, Any]
@@ -217,10 +218,32 @@ class Database:
             return self._attachments.delete_attachment(self.name, docid, name, rev=rev).rev
 
     # -- changes ----------------------------------------------------------
-    def changes(self, since: str = "0", **kwargs: Any) -> ChangesResult:
+    def changes(self, since: str = "0", doc_ids: Optional[List[str]] = None,
+                selector: Optional[Doc] = None, **kwargs: Any) -> ChangesResult:
+        """One page of changes. `doc_ids` or `selector` filter server-side."""
         with translate():
-            res = self._changes.get_changes(self.name, since=since, **kwargs)
+            if doc_ids is None and selector is None:
+                res = self._changes.get_changes(self.name, since=since, **kwargs)
+            else:
+                kwargs.setdefault("filter", "_selector" if selector is not None else "_doc_ids")
+                body = gen.ChangesQuery(doc_ids=doc_ids, selector=selector)
+                res = self._changes.post_changes(self.name, body, since=since, **kwargs)
         return ChangesResult([_plain(r) for r in res.results], res.last_seq, res.pending)
+
+    def follow(self, **kwargs: Any) -> ChangesFeed:
+        """Iterate changes forever; see `ChangesFeed` for retry and checkpoint options."""
+        return ChangesFeed(self, **kwargs)
+
+    # -- local documents --------------------------------------------------
+    def get_local(self, docid: str) -> Doc:
+        with translate():
+            return _plain(self._docs.get_local_document(self.name, docid))
+
+    def put_local(self, docid: str, doc: Doc) -> Doc:
+        """Write `_local/<docid>` (not replicated, not in the changes feed)."""
+        with translate():
+            res = self._docs.put_local_document(self.name, docid, gen.Document.from_dict(doc))
+        return dict(doc, _id=res.id, _rev=res.rev)
 
     # -- security ---------------------------------------------------------
     def security(self) -> Dict[str, Any]:

@@ -1,4 +1,7 @@
 """Integration tests for the hand-written couchdb_sdk layer against a real CouchDB."""
+import threading
+import time
+
 import pytest
 
 from couchdb_sdk import CouchDB, errors
@@ -133,3 +136,60 @@ def test_cookie_session():
         assert c.session()["userCtx"]["name"] == USER
         c.logout()
         assert c.session()["userCtx"]["name"] is None
+
+
+def test_changes_filters(database):
+    database.bulk_save([{"_id": "a", "t": 1}, {"_id": "b", "t": 2}, {"_id": "c", "t": 1}])
+    assert [r["id"] for r in database.changes(doc_ids=["b"]).results] == ["b"]
+    assert sorted(r["id"] for r in database.changes(selector={"t": 1}).results) == ["a", "c"]
+
+
+def test_follow_resumes_from_checkpoint(database):
+    database.bulk_save([{"_id": "a"}, {"_id": "b"}])
+    feed = database.follow(checkpoint="reader", timeout=1000)
+    seen = []
+    for row in feed:
+        seen.append(row["id"])
+        if len(seen) == 2:
+            feed.stop()
+    assert sorted(seen) == ["a", "b"]
+
+    database.save({"_id": "c"})
+    feed = database.follow(checkpoint="reader", timeout=1000)
+    assert next(iter(feed))["id"] == "c"
+
+
+def test_follow_continuous_delivers_live_writes(database):
+    database.save({"_id": "a"})
+    feed = database.follow(feed="continuous", heartbeat=1000)
+
+    def write_later():
+        time.sleep(0.5)
+        database.save({"_id": "b"})
+
+    writer = threading.Thread(target=write_later)
+    writer.start()
+    seen = []
+    try:
+        for row in feed:
+            seen.append(row["id"])
+            if "b" in seen:
+                feed.stop()
+    finally:
+        writer.join()
+    assert set(seen) >= {"a", "b"}
+
+
+def test_follow_continuous_resumes_from_checkpoint(database):
+    database.bulk_save([{"_id": "a"}, {"_id": "b"}])
+    feed = database.follow(feed="continuous", checkpoint="cont", heartbeat=1000, batch_size=1)
+    seen = []
+    for row in feed:
+        seen.append(row["id"])
+        if len(seen) == 2:
+            feed.stop()
+    assert sorted(seen) == ["a", "b"]
+
+    database.save({"_id": "c"})
+    feed = database.follow(feed="continuous", checkpoint="cont", heartbeat=1000)
+    assert next(iter(feed))["id"] == "c"

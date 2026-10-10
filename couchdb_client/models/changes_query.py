@@ -17,25 +17,18 @@ import pprint
 import re  # noqa: F401
 import json
 
-from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictStr
+from pydantic import BaseModel, ConfigDict, StrictStr
 from typing import Any, ClassVar, Dict, List, Optional
-from typing_extensions import Annotated
 from typing import Optional, Set
 from typing_extensions import Self
 
-class FindQuery(BaseModel):
+class ChangesQuery(BaseModel):
     """
-    FindQuery
+    ChangesQuery
     """ # noqa: E501
-    selector: Dict[str, Any]
-    fields: Optional[List[StrictStr]] = None
-    sort: Optional[List[Dict[str, StrictStr]]] = Field(default=None, description="Field/direction pairs, e.g. `[{\"age\": \"desc\"}]`. Direction is `asc` or `desc`.")
-    limit: Optional[Annotated[int, Field(strict=True, ge=0)]] = None
-    skip: Optional[Annotated[int, Field(strict=True, ge=0)]] = None
-    use_index: Optional[List[StrictStr]] = None
-    bookmark: Optional[StrictStr] = None
-    execution_stats: Optional[StrictBool] = None
-    __properties: ClassVar[List[str]] = ["selector", "fields", "sort", "limit", "skip", "use_index", "bookmark", "execution_stats"]
+    doc_ids: Optional[List[StrictStr]] = None
+    selector: Optional[Dict[str, Any]] = None
+    __properties: ClassVar[List[str]] = ["doc_ids", "selector"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -55,7 +48,7 @@ class FindQuery(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Optional[Self]:
-        """Create an instance of FindQuery from a JSON string"""
+        """Create an instance of ChangesQuery from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -80,7 +73,7 @@ class FindQuery(BaseModel):
 
     @classmethod
     def from_dict(cls, obj: Optional[Dict[str, Any]]) -> Optional[Self]:
-        """Create an instance of FindQuery from a dict"""
+        """Create an instance of ChangesQuery from a dict"""
         if obj is None:
             return None
 
@@ -88,14 +81,8 @@ class FindQuery(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "selector": obj.get("selector"),
-            "fields": obj.get("fields"),
-            "sort": obj.get("sort"),
-            "limit": obj.get("limit"),
-            "skip": obj.get("skip"),
-            "use_index": obj.get("use_index"),
-            "bookmark": obj.get("bookmark"),
-            "execution_stats": obj.get("execution_stats")
+            "doc_ids": obj.get("doc_ids"),
+            "selector": obj.get("selector")
         })
         return _obj
 

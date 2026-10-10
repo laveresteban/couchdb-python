@@ -22,6 +22,7 @@ couchdb_client/models/all_docs_result.py
 couchdb_client/models/all_docs_result_rows_inner.py
 couchdb_client/models/all_docs_result_rows_inner_value.py
 couchdb_client/models/bulk_docs.py
+couchdb_client/models/changes_query.py
 couchdb_client/models/changes_result.py
 couchdb_client/models/changes_result_results_inner.py
 couchdb_client/models/changes_result_results_inner_changes_inner.py
@@ -69,6 +70,7 @@ docs/AttachmentsApi.md
 docs/AuthenticationApi.md
 docs/BulkDocs.md
 docs/ChangesApi.md
+docs/ChangesQuery.md
 docs/ChangesResult.md
 docs/ChangesResultResultsInner.md
 docs/ChangesResultResultsInnerChangesInner.md

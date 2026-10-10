@@ -349,6 +349,40 @@ def changes_deleted(docid):
     assert rows and rows[-1].get("deleted") is True, rows
 
 
+@step("The changes feed filtered to documents <ids> lists documents <expected>")
+def changes_doc_ids(ids, expected):
+    got = [r["id"] for r in db().changes(doc_ids=ids.split(",")).results]
+    assert sorted(got) == sorted(expected.split(",")), got
+
+
+@step("Follow the changes feed with checkpoint <name> until document <docid>")
+def follow_until(name, docid):
+    feed = db().follow(checkpoint=name, timeout=1000)
+    for row in feed:
+        if row["id"] == docid:
+            feed.stop()
+
+
+@step("Following the changes feed with checkpoint <name> next yields document <docid>")
+def follow_next(name, docid):
+    row = next(iter(db().follow(checkpoint=name, timeout=1000)))
+    assert row["id"] == docid, row
+
+
+@step("Follow the continuous changes feed with checkpoint <name> until document <docid>")
+def follow_continuous_until(name, docid):
+    feed = db().follow(feed="continuous", checkpoint=name, heartbeat=1000, batch_size=1)
+    for row in feed:
+        if row["id"] == docid:
+            feed.stop()
+
+
+@step("Following the continuous changes feed with checkpoint <name> next yields document <docid>")
+def follow_continuous_next(name, docid):
+    row = next(iter(db().follow(feed="continuous", checkpoint=name, heartbeat=1000)))
+    assert row["id"] == docid, row
+
+
 # -- security --------------------------------------------------------------
 @step("Set the database members to user <user>")
 def set_members(user):
