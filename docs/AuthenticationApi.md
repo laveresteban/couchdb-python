@@ -85,8 +85,9 @@ This endpoint does not need any parameter.
 
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**200** | Session ended |  -  |
+**200** | Session ended |  * X-Couch-Request-ID -  <br>  |
 **401** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -166,8 +167,9 @@ This endpoint does not need any parameter.
 
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**200** | Session info |  -  |
+**200** | Session info |  * X-Couch-Request-ID -  <br>  |
 **401** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -234,8 +236,9 @@ No authorization required
 
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**200** | Session created; AuthSession cookie is set |  -  |
+**200** | Session created; AuthSession cookie is set |  * X-Couch-Request-ID -  <br>  |
 **401** | CouchDB error |  -  |
+**400** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

@@ -6,7 +6,7 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **source** | [**ReplicationRequestSource**](ReplicationRequestSource.md) |  | 
-**target** | [**ReplicationRequestTarget**](ReplicationRequestTarget.md) |  | 
+**target** | [**ReplicationRequestSource**](ReplicationRequestSource.md) |  | 
 **create_target** | **bool** |  | [optional] 
 **continuous** | **bool** |  | [optional] 
 **cancel** | **bool** |  | [optional] 

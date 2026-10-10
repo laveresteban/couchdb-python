@@ -11,6 +11,7 @@ Name | Type | Description | Notes
 **deleted** | **bool** |  | [optional] 
 **attachments** | **Dict[str, object]** |  | [optional] 
 **conflicts** | **List[str]** |  | [optional] 
+**revisions** | [**DocumentRevisions**](DocumentRevisions.md) |  | [optional] 
 
 ## Example
 

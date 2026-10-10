@@ -95,8 +95,11 @@ Name | Type | Description  | Notes
 
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**200** | Attachment deleted |  -  |
+**200** | Attachment deleted |  * X-Couch-Request-ID -  <br>  |
 **409** | CouchDB error |  -  |
+**401** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
+**400** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -185,8 +188,11 @@ Name | Type | Description  | Notes
 
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**200** | Attachment bytes |  -  |
+**200** | Attachment bytes |  * X-Couch-Request-ID -  <br>  |
 **404** | CouchDB error |  -  |
+**401** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
+**400** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -278,8 +284,11 @@ Name | Type | Description  | Notes
 
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**201** | Attachment stored |  -  |
+**201** | Attachment stored |  * X-Couch-Request-ID -  <br>  |
 **409** | CouchDB error |  -  |
+**401** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
+**400** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

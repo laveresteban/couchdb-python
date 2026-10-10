@@ -116,9 +116,11 @@ Name | Type | Description  | Notes
 
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**200** | Changes |  -  |
+**200** | Changes |  * X-Couch-Request-ID -  <br>  |
 **400** | CouchDB error |  -  |
 **404** | CouchDB error |  -  |
+**401** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -233,9 +235,11 @@ Name | Type | Description  | Notes
 
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**200** | Changes |  -  |
+**200** | Changes |  * X-Couch-Request-ID -  <br>  |
 **400** | CouchDB error |  -  |
 **404** | CouchDB error |  -  |
+**401** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
