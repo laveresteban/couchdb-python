@@ -26,7 +26,11 @@ jobs:
       - name: Wait for CouchDB
         run: |
           for i in $(seq 60); do curl -sf http://localhost:5984/_up && break; sleep 1; done
-          curl -sf -X PUT http://admin:password@localhost:5984/_users || true
+          # Single-node system databases (_scheduler/docs needs _replicator,
+          # _db_updates needs _global_changes).
+          for db in _users _replicator _global_changes; do
+            curl -sf -X PUT http://admin:password@localhost:5984/$db || true
+          done
       - run: pytest -v tests
 
   conformance:
@@ -55,7 +59,11 @@ jobs:
       - name: Wait for CouchDB
         run: |
           for i in $(seq 60); do curl -sf http://localhost:5984/_up && break; sleep 1; done
-          curl -sf -X PUT http://admin:password@localhost:5984/_users || true
+          # Single-node system databases (_scheduler/docs needs _replicator,
+          # _db_updates needs _global_changes).
+          for db in _users _replicator _global_changes; do
+            curl -sf -X PUT http://admin:password@localhost:5984/$db || true
+          done
       - run: bash couchdb-python/scripts/conformance.sh
       - if: always()
         uses: actions/upload-artifact@v4
