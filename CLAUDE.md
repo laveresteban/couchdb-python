@@ -20,6 +20,11 @@ bash scripts/conformance.sh [--tags sync]
 
 ## Rules
 
+- CI is the shared `sdk-ci.yml` in couchdb-sdk-generator (tests, conformance,
+  generated-code drift check). Change it there, not here; `ci.yml` only
+  passes this SDK's versions and commands. Behavior shared with the other
+  SDKs is described in couchdb-sdk-generator `docs/sdk-design.md`.
+
 - `from_dict` is safe for models with untyped fields since 0.7.0 (the
   generator's Python template only sets keys that are present); older
   wrapper code builds them with constructors, which is also fine.
