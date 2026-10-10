@@ -253,3 +253,15 @@ def test_only_network_errors_are_transient():
     assert is_transient(urllib3.exceptions.ProtocolError("reset"))
     assert is_transient(urllib3.exceptions.ReadTimeoutError(None, "/", "slow"))
     assert not is_transient(urllib3.exceptions.LocationParseError("bad url"))
+
+
+def test_continuous_saves_checkpoint_on_stop():
+    from couchdb_sdk.errors import NotFound
+
+    feed = continuous_feed([FakeStream([b'{"seq":"7","id":"a","changes":[]}\n'])],
+                           checkpoint="cp")
+    feed.db.get_local.side_effect = NotFound(404, "not_found", "missing")
+    feed.db.put_local.return_value = {"_rev": "0-1"}
+    for _ in feed:
+        feed.stop()
+    feed.db.put_local.assert_called_once_with("cp", {"since": "7"})
