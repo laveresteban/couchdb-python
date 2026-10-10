@@ -51,7 +51,7 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 with couchdb_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = couchdb_client.ChangesApi(api_client)
-    db = 'db_example' # str | Database name
+    db = 'db_example' # str | Database name. System databases (`_users`, `_replicator`, ...) start with `_`.
     feed = normal # str | `normal`/`longpoll` return one JSON object; `continuous` streams newline-delimited change objects. `eventsource` is not supported. (optional) (default to normal)
     since = '0' # str | Start after this sequence; `now` skips existing changes. (optional) (default to '0')
     include_docs = False # bool |  (optional) (default to False)
@@ -83,7 +83,7 @@ with couchdb_client.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **db** | **str**| Database name | 
+ **db** | **str**| Database name. System databases (&#x60;_users&#x60;, &#x60;_replicator&#x60;, ...) start with &#x60;_&#x60;. | 
  **feed** | **str**| &#x60;normal&#x60;/&#x60;longpoll&#x60; return one JSON object; &#x60;continuous&#x60; streams newline-delimited change objects. &#x60;eventsource&#x60; is not supported. | [optional] [default to normal]
  **since** | **str**| Start after this sequence; &#x60;now&#x60; skips existing changes. | [optional] [default to &#39;0&#39;]
  **include_docs** | **bool**|  | [optional] [default to False]
@@ -116,9 +116,11 @@ Name | Type | Description  | Notes
 
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**200** | Changes |  -  |
+**200** | Changes. With &#x60;feed&#x3D;continuous&#x60; the body is newline-delimited JSON instead of one object: a change per line, blank heartbeat lines, then a final &#x60;{\&quot;last_seq\&quot;: ...}&#x60; line. Generated clients can&#39;t stream that; read the raw response.  |  -  |
 **400** | CouchDB error |  -  |
 **404** | CouchDB error |  -  |
+**401** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -166,7 +168,7 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 with couchdb_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = couchdb_client.ChangesApi(api_client)
-    db = 'db_example' # str | Database name
+    db = 'db_example' # str | Database name. System databases (`_users`, `_replicator`, ...) start with `_`.
     changes_query = couchdb_client.ChangesQuery() # ChangesQuery | 
     feed = normal # str | `normal`/`longpoll` return one JSON object; `continuous` streams newline-delimited change objects. `eventsource` is not supported. (optional) (default to normal)
     since = '0' # str | Start after this sequence; `now` skips existing changes. (optional) (default to '0')
@@ -199,7 +201,7 @@ with couchdb_client.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **db** | **str**| Database name | 
+ **db** | **str**| Database name. System databases (&#x60;_users&#x60;, &#x60;_replicator&#x60;, ...) start with &#x60;_&#x60;. | 
  **changes_query** | [**ChangesQuery**](ChangesQuery.md)|  | 
  **feed** | **str**| &#x60;normal&#x60;/&#x60;longpoll&#x60; return one JSON object; &#x60;continuous&#x60; streams newline-delimited change objects. &#x60;eventsource&#x60; is not supported. | [optional] [default to normal]
  **since** | **str**| Start after this sequence; &#x60;now&#x60; skips existing changes. | [optional] [default to &#39;0&#39;]
@@ -236,6 +238,8 @@ Name | Type | Description  | Notes
 **200** | Changes |  -  |
 **400** | CouchDB error |  -  |
 **404** | CouchDB error |  -  |
+**401** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

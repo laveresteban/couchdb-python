@@ -53,7 +53,7 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 with couchdb_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = couchdb_client.DesignDocumentsApi(api_client)
-    db = 'db_example' # str | Database name
+    db = 'db_example' # str | Database name. System databases (`_users`, `_replicator`, ...) start with `_`.
     ddoc = 'ddoc_example' # str | Design document name without the `_design/` prefix
     rev = 'rev_example' # str | 
 
@@ -73,7 +73,7 @@ with couchdb_client.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **db** | **str**| Database name | 
+ **db** | **str**| Database name. System databases (&#x60;_users&#x60;, &#x60;_replicator&#x60;, ...) start with &#x60;_&#x60;. | 
  **ddoc** | **str**| Design document name without the &#x60;_design/&#x60; prefix | 
  **rev** | **str**|  | 
 
@@ -96,6 +96,9 @@ Name | Type | Description  | Notes
 |-------------|-------------|------------------|
 **200** | Deleted |  -  |
 **404** | CouchDB error |  -  |
+**401** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
+**409** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -142,7 +145,7 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 with couchdb_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = couchdb_client.DesignDocumentsApi(api_client)
-    db = 'db_example' # str | Database name
+    db = 'db_example' # str | Database name. System databases (`_users`, `_replicator`, ...) start with `_`.
     ddoc = 'ddoc_example' # str | Design document name without the `_design/` prefix
 
     try:
@@ -161,7 +164,7 @@ with couchdb_client.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **db** | **str**| Database name | 
+ **db** | **str**| Database name. System databases (&#x60;_users&#x60;, &#x60;_replicator&#x60;, ...) start with &#x60;_&#x60;. | 
  **ddoc** | **str**| Design document name without the &#x60;_design/&#x60; prefix | 
 
 ### Return type
@@ -183,6 +186,8 @@ Name | Type | Description  | Notes
 |-------------|-------------|------------------|
 **200** | The design document |  -  |
 **404** | CouchDB error |  -  |
+**401** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -230,7 +235,7 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 with couchdb_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = couchdb_client.DesignDocumentsApi(api_client)
-    db = 'db_example' # str | Database name
+    db = 'db_example' # str | Database name. System databases (`_users`, `_replicator`, ...) start with `_`.
     ddoc = 'ddoc_example' # str | Design document name without the `_design/` prefix
     view = 'view_example' # str | 
     view_query = couchdb_client.ViewQuery() # ViewQuery | 
@@ -251,7 +256,7 @@ with couchdb_client.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **db** | **str**| Database name | 
+ **db** | **str**| Database name. System databases (&#x60;_users&#x60;, &#x60;_replicator&#x60;, ...) start with &#x60;_&#x60;. | 
  **ddoc** | **str**| Design document name without the &#x60;_design/&#x60; prefix | 
  **view** | **str**|  | 
  **view_query** | [**ViewQuery**](ViewQuery.md)|  | 
@@ -275,6 +280,9 @@ Name | Type | Description  | Notes
 |-------------|-------------|------------------|
 **200** | View rows |  -  |
 **404** | CouchDB error |  -  |
+**400** | CouchDB error |  -  |
+**401** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -322,7 +330,7 @@ configuration.api_key['cookieAuth'] = os.environ["API_KEY"]
 with couchdb_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = couchdb_client.DesignDocumentsApi(api_client)
-    db = 'db_example' # str | Database name
+    db = 'db_example' # str | Database name. System databases (`_users`, `_replicator`, ...) start with `_`.
     ddoc = 'ddoc_example' # str | Design document name without the `_design/` prefix
     design_document = couchdb_client.DesignDocument() # DesignDocument | 
 
@@ -342,7 +350,7 @@ with couchdb_client.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **db** | **str**| Database name | 
+ **db** | **str**| Database name. System databases (&#x60;_users&#x60;, &#x60;_replicator&#x60;, ...) start with &#x60;_&#x60;. | 
  **ddoc** | **str**| Design document name without the &#x60;_design/&#x60; prefix | 
  **design_document** | [**DesignDocument**](DesignDocument.md)|  | 
 
@@ -365,6 +373,9 @@ Name | Type | Description  | Notes
 |-------------|-------------|------------------|
 **201** | Written |  -  |
 **409** | CouchDB error |  -  |
+**400** | CouchDB error |  -  |
+**401** | CouchDB error |  -  |
+**403** | CouchDB error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

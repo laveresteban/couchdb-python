@@ -7,6 +7,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **map** | **str** |  | [optional] 
 **reduce** | **str** |  | [optional] 
+**options** | **Dict[str, object]** |  | [optional] 
 
 ## Example
 
