@@ -218,7 +218,15 @@ def test_expired_session_logs_in_again(couch, database):
         with CouchDB(URL) as c:
             c.login(USER, PASSWORD)
             first = c.client.cookie
-            time.sleep(2.5)
+            # Wait until the server itself reports the cookie expired, instead
+            # of assuming a fixed delay is long enough.
+            deadline = time.monotonic() + 10
+            while True:
+                s = http.request("GET", f"{URL}/_session", headers={"Cookie": first}).json()
+                if s["userCtx"]["name"] is None:
+                    break
+                assert time.monotonic() < deadline, "cookie never expired"
+                time.sleep(0.2)
             assert c[database.name].info()["db_name"] == database.name
             assert c.client.cookie != first
     finally:
