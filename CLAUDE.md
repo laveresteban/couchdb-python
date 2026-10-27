@@ -30,20 +30,5 @@ bash scripts/conformance.sh [--tags sync]
   wrapper code builds them with constructors, which is also fine.
 - Wrap every generated call in `with translate():` so users get typed errors.
 
-## Fixes still open
-
-Done in 0.6.0/0.7.0: regenerated client, `sync.spec` steps and the 0.7.0
-scenarios (46/46), continuous feed encoding/filters/null seqs, session
-renewal, `bulk_save` revs, narrower `is_transient`, `replication_url`,
-`head`/ETag, maintenance and listing helpers. `scripts/conformance.sh` fails
-on skipped scenarios (Gauge alone reports them as a pass).
-
-- The continuous reader doesn't log in again on a 401 mid-stream; it raises.
-
-## Features to add
-
-- Async client (`httpx` or the generator's `asyncio` library option).
-- `__contains__` via `head()` instead of a full GET.
-- Attachment streaming (no full `bytes` in memory for large files).
-- `iter_all_docs()` / `iter_find()` helpers that page with bookmark/startkey.
-- Type hints for documents (`TypedDict` or generic `Database[T]`).
+- Open fixes and planned features live in `ROADMAP.md`. Remove items there
+  as they ship and note them in `CHANGELOG.md`.
