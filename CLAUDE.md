@@ -46,3 +46,11 @@ bash scripts/conformance.sh [--tags sync]
   test fixtures; use env vars or mocked values.
 - Keep dependencies pinned to supported ranges and flag known-vulnerable
   versions in the PR description.
+
+## Releasing
+
+- Bump `VERSION` in `setup.py`, `couchdb_client/__init__.py`, and the
+  `spec_version` in `.generated-from` to the spec version, and date the
+  matching `CHANGELOG.md` heading.
+- Merge to `main`, then push tag `v<version>`. The release workflow runs CI,
+  then creates the GitHub Release (notes from CHANGELOG) and publishes to PyPI.
