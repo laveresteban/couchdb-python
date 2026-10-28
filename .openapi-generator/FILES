@@ -162,7 +162,5 @@ docs/UuidsResult.md
 docs/ViewQuery.md
 docs/ViewResult.md
 docs/ViewResultRowsInner.md
-pyproject.toml
 requirements.txt
 setup.cfg
-setup.py
