@@ -24,7 +24,7 @@ jobs:
     with:
       language: python
       matrix-key: python
-      versions: '["3.9", "3.12", "3.13"]'
+      versions: '["3.12", "3.13"]'
       conformance-version: "3.12"
       install: pip install -e . -r test-requirements.txt
       test: pytest -v tests

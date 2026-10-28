@@ -12,6 +12,8 @@
 """  # noqa: E501
 
 
+from pathlib import Path
+
 from setuptools import setup, find_packages  # noqa: H301
 
 # To install the library, run the following
@@ -22,7 +24,7 @@ from setuptools import setup, find_packages  # noqa: H301
 # http://pypi.python.org/pypi/setuptools
 NAME = "couchdb-sdk"
 VERSION = "0.7.0"
-PYTHON_REQUIRES = ">= 3.8"
+PYTHON_REQUIRES = ">= 3.12"  # lowest version CI tests
 REQUIRES = [
     "urllib3 >= 1.25.3, < 3.0.0",
     "python-dateutil >= 2.8.2",
@@ -34,17 +36,31 @@ setup(
     name=NAME,
     version=VERSION,
     description="Apache CouchDB API",
-    author="OpenAPI Generator community",
-    author_email="team@openapitools.org",
+    author="Esteban Laver",
+    author_email="laveresteban@gmail.com",
     url="https://github.com/laveresteban/couchdb-python",
-    keywords=["OpenAPI", "OpenAPI-Generator", "Apache CouchDB API"],
+    project_urls={
+        "Source": "https://github.com/laveresteban/couchdb-python",
+        "Changelog": "https://github.com/laveresteban/couchdb-python/blob/main/CHANGELOG.md",
+    },
+    keywords=["OpenAPI", "OpenAPI-Generator", "Apache CouchDB API", "CouchDB"],
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: Apache Software License",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Topic :: Database",
+        "Typing :: Typed",
+    ],
+    python_requires=PYTHON_REQUIRES,
     install_requires=REQUIRES,
     packages=find_packages(exclude=["test", "tests"]),
     include_package_data=True,
     license="Apache-2.0",
-    long_description_content_type='text/markdown',
-    long_description="""\
-    OpenAPI description of the Apache CouchDB 3.x HTTP API. This is the single source of truth for all generated CouchDB SDKs. 
-    """,  # noqa: E501
+    long_description=(Path(__file__).parent / "README.md").read_text(encoding="utf-8"),
+    long_description_content_type="text/markdown",
     package_data={"couchdb_client": ["py.typed"]},
 )

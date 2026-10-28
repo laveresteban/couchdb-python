@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.7.0 (unreleased)
+## 0.7.0 - 2026-10-27
 - Regenerated from couchdb-openapi 0.7.0. Absent untyped fields (view
   `start_key`, ...) are no longer sent as `null` (generator template fix).
 - `Database.head()`, `get_if_changed()` (ETag / 304), `explain()`,

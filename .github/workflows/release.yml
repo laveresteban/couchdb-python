@@ -1,5 +1,7 @@
 name: release
-# Publishes only after the same CI (tests, conformance, drift check) passes on the tag.
+# Pushing a tag v<spec_version> releases it: the same CI (tests, conformance,
+# drift check) must pass first, then the sdist and wheel go to a GitHub Release
+# and to PyPI.
 on:
   push:
     tags: ["v*"]
@@ -11,25 +13,60 @@ jobs:
   ci:
     uses: ./.github/workflows/ci.yml
 
-  pypi:
+  build:
     needs: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      # The tag, the package version and the spec version must agree, and
+      # CHANGELOG.md needs a "## <version> ..." heading for the release notes.
+      - name: Check tag, package, spec and changelog versions
+        run: |
+          ver="${GITHUB_REF_NAME#v}"
+          spec=$(sed -n 's/^spec_version=//p' .generated-from)
+          pkg=$(sed -n 's/^VERSION = "\(.*\)"/\1/p' setup.py)
+          [ "$ver" = "$spec" ] || { echo "::error::tag $GITHUB_REF_NAME but spec_version $spec"; exit 1; }
+          [ "$ver" = "$pkg" ] || { echo "::error::tag $GITHUB_REF_NAME but setup.py VERSION $pkg"; exit 1; }
+          grep -q "^## $ver " CHANGELOG.md || { echo "::error::no CHANGELOG.md heading for $ver"; exit 1; }
+      - run: pip install build twine && python -m build && python -m twine check dist/*
+      - name: Check the wheel is there
+        run: ls "dist/couchdb_sdk-${GITHUB_REF_NAME#v}-"*.whl
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  github-release:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write   # create the GitHub Release and attach the files
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: dist, path: dist/ }
+      - name: Release notes from CHANGELOG.md
+        run: |
+          ver="${GITHUB_REF_NAME#v}"
+          awk -v v="$ver" '$0 ~ "^## "v" " {f=1; next} /^## / {f=0} f' CHANGELOG.md > notes.md
+          [ -s notes.md ] || echo "Release $ver" > notes.md
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --title "couchdb-sdk $GITHUB_REF_NAME" --notes-file notes.md
+
+  pypi:
+    needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: pypi
     permissions:
       id-token: write   # PyPI trusted publishing, no API token needed
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with: { python-version: "3.12" }
-      - run: pip install build && python -m build
-      # The wheel's version comes from setup.py, which generate.sh stamps
-      # with the spec version.
-      - name: Tag, package version and spec version agree
-        run: |
-          ver="${GITHUB_REF_NAME#v}"
-          spec=$(sed -n 's/^spec_version=//p' .generated-from)
-          ls dist
-          [ "$ver" = "$spec" ] || { echo "::error::tag $GITHUB_REF_NAME but spec_version $spec"; exit 1; }
-          ls "dist/couchdb_sdk-$ver-"*.whl >/dev/null || { echo "::error::no couchdb_sdk $ver wheel"; exit 1; }
+      - uses: actions/download-artifact@v4
+        with: { name: dist, path: dist/ }
       - uses: pypa/gh-action-pypi-publish@release/v1
