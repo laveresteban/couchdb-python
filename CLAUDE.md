@@ -49,8 +49,8 @@ bash scripts/conformance.sh [--tags sync]
 
 ## Releasing
 
-- Bump `VERSION` in `setup.py`, `couchdb_client/__init__.py`, and the
-  `spec_version` in `.generated-from` to the spec version, and date the
-  matching `CHANGELOG.md` heading.
+- Bump `VERSION` in `setup.py` to the spec version, and date the matching
+  `CHANGELOG.md` heading. `couchdb_client/` and `.generated-from` come from a
+  regeneration in couchdb-sdk-generator; the release check fails if they disagree.
 - Merge to `main`, then push tag `v<version>`. The release workflow runs CI,
   then creates the GitHub Release (notes from CHANGELOG) and publishes to PyPI.
