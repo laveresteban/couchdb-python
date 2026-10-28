@@ -14,3 +14,5 @@ scripts/**
 README.md
 LICENSE
 NOTICE
+setup.py
+pyproject.toml
