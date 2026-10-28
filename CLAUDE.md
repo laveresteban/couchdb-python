@@ -32,3 +32,17 @@ bash scripts/conformance.sh [--tags sync]
 
 - Open fixes and planned features live in `ROADMAP.md`. Remove items there
   as they ship and note them in `CHANGELOG.md`.
+
+## Secure SDLC
+
+- Follow secure SDLC when implementing: threat-model new network, auth, or
+  file-handling code before writing it, and review the diff for injection,
+  unsafe deserialization, path traversal, and credential leakage before
+  committing.
+- Every security-relevant change adds test cases that cover it: invalid or
+  hostile input, auth failures (401/403), TLS and host handling, and
+  error paths that must not leak credentials or server internals.
+- Never log, print, or put credentials in URLs, exception messages, or
+  test fixtures; use env vars or mocked values.
+- Keep dependencies pinned to supported ranges and flag known-vulnerable
+  versions in the PR description.
