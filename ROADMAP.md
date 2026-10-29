@@ -3,15 +3,12 @@
 Planned work for couchdb-python, roughly in order. Behavior shared with the other
 SDKs follows couchdb-sdk-generator `docs/sdk-design.md`.
 
-## In progress
-
-- Require Python 3.11 (breaking) and run CI and docs on CouchDB 3.5.2
-  (branch `fix/python-3.11-floor-couchdb-3.5.2`).
-
 ## Fixes
 
 - The continuous changes reader raises on a 401 mid-stream. It should log in
   again once and resume from its checkpoint, as the longpoll reader does.
+- Test and document against CouchDB 3.5.2 instead of 3.4 (the shared CI
+  default moves with couchdb-sdk-generator).
 
 ## Features
 
@@ -24,5 +21,4 @@ SDKs follows couchdb-sdk-generator `docs/sdk-design.md`.
 
 ## Releases and docs
 
-- Publish each spec version to PyPI as `couchdb-sdk` (tag `v<spec_version>`).
 - A docs site covering the idiomatic layer, alongside the generated API docs in `docs/`.
