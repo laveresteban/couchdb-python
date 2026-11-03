@@ -18,8 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with: { python-version: "3.12" }
       # The tag, the package version and the spec version must agree, and
       # CHANGELOG.md needs a "## <version> ..." heading for the release notes.
@@ -34,7 +34,7 @@ jobs:
       - run: pip install build twine && python -m build && python -m twine check dist/*
       - name: Check the wheel is there
         run: ls "dist/couchdb_sdk-${GITHUB_REF_NAME#v}-"*.whl
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist/
@@ -46,8 +46,8 @@ jobs:
     permissions:
       contents: write   # create the GitHub Release and attach the files
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
         with: { name: dist, path: dist/ }
       - name: Release notes from CHANGELOG.md
         run: |
@@ -67,6 +67,6 @@ jobs:
     permissions:
       id-token: write   # PyPI trusted publishing, no API token needed
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with: { name: dist, path: dist/ }
       - uses: pypa/gh-action-pypi-publish@release/v1
